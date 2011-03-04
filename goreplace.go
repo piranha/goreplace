@@ -1,19 +1,19 @@
 package main
 
 import (
-    goopt "github.com/droundy/goopt"
+	goopt "github.com/droundy/goopt"
 	"os"
 	"path"
 	"fmt"
 	"regexp"
 	"bytes"
-	)
+)
 
 var Pattern *regexp.Regexp
 var byteNewLine []byte = []byte("\n")
 
 func main() {
-	goopt.Description = func () string {
+	goopt.Description = func() string {
 		return "Go search and replace in files"
 	}
 	goopt.Version = "0.1"
@@ -135,7 +135,7 @@ func searchFiles() {
 	path.Walk(".", v, errors)
 
 	select {
-	case err := <- errors:
+	case err := <-errors:
 		errhandle(err)
 	default:
 	}
