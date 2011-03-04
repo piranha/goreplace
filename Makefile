@@ -1,12 +1,11 @@
 include $(GOROOT)/src/Make.inc
 
-TARG=goreplace
+TARG=gr
 GOFILES=goreplace.go
-MAIN=goreplace.go
 
-gr: package
-	$(GC) -I_obj $(MAIN)
-	$(LD) -L_obj -o $@ $(MAIN:%.go=%).$O
-	@echo "Done. Executable is: $@"
+main: all
 
-include $(GOROOT)/src/Make.pkg
+run: main
+	./gr main
+
+include $(GOROOT)/src/Make.cmd
