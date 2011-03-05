@@ -29,8 +29,8 @@ var onlyName = goopt.Flag([]string{"-n", "--filename"}, []string{},
 	"print only filenames", "")
 var ignoreFiles = goopt.Strings([]string{"-x", "--exclude"}, "RE",
 	"exclude files that match the regexp from search")
-var multiline = goopt.Flag([]string{"-m", "--multiline"}, []string{},
-	"use multiline matching", "")
+var singleline = goopt.Flag([]string{"-s", "--singleline"}, []string{},
+	"match on a single line (^/$ will work)", "")
 
 func main() {
 	goopt.Description = func() string {
@@ -210,16 +210,25 @@ type LineInfo struct {
 
 // will return slice of [linenum, line] slices
 func FindAllIndex(re *regexp.Regexp, content []byte) (res []*LineInfo) {
-	if !*multiline {
-		for i, line := range bytes.Split(content, []byte("\n"), -1) {
-			if re.Match(line) {
-				res = append(res, &LineInfo{i+1, line})
+	linenum := 1
+
+	if *singleline {
+		begin, end := 0, 0
+		for i := 0; i < len(content); i++ {
+			if content[i] == '\n' {
+				end = i
+				line := content[begin:end]
+				if re.Match(line) {
+					res = append(res, &LineInfo{linenum, line})
+				}
+				linenum += 1
+				begin = end + 1
 			}
 		}
 		return res
 	}
 
-	linenum, last := 1, 0
+	last := 0
 	for _, bounds := range re.FindAllIndex(content, -1) {
 		linenum += bytes.Count(content[last:bounds[0]], byteNewLine)
 		last = bounds[0]
