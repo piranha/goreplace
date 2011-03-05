@@ -26,16 +26,17 @@ func main() {
 
 	var err os.Error
 	Pattern, err = regexp.Compile(goopt.Args[0])
-	errhandle(err)
+	errhandle(err, "can't compile regexp %s", goopt.Args[0])
 
 	searchFiles()
 }
 
-func errhandle(err os.Error) {
+func errhandle(err os.Error, moreinfo string, a ...interface{}) {
 	if err == nil {
 		return
 	}
-	fmt.Fprintf(os.Stderr, "ERR %s\n", err)
+	fmt.Fprintf(os.Stderr, "ERR %s\n%s\n", err,
+		fmt.Sprintf(moreinfo, a...))
 	os.Exit(1)
 }
 
@@ -53,12 +54,17 @@ func (v *Visitor) VisitFile(p string, fi *os.FileInfo) {
 		fmt.Fprintf(os.Stderr, "Skipping %s, too big: %d\n", p, fi.Size)
 		return
 	}
+
+	if fi.Size == 0 {
+		return
+	}
+
 	f, err := os.Open(p, os.O_RDONLY, 0666)
-	errhandle(err)
+	errhandle(err, "can't open file %s", p)
 
 	content := make([]byte, fi.Size)
 	n, err := f.Read(content)
-	errhandle(err)
+	errhandle(err, "can't read file %s", p)
 	if int64(n) != fi.Size {
 		panic(fmt.Sprintf("Not whole file was read, only %d from %d",
 			n, fi.Size))
@@ -70,7 +76,7 @@ func (v *Visitor) VisitFile(p string, fi *os.FileInfo) {
 }
 
 func searchFile(p string, content []byte) {
-	var linenum int
+	linenum := 1
 	last := 0
 	hadOutput := false
 	binary := false
@@ -87,13 +93,17 @@ func searchFile(p string, content []byte) {
 		}
 
 		if !hadOutput {
-			fmt.Printf("%s:\n", p)
+			fmt.Printf("%s\n", p)
 			hadOutput = true
 		}
 
-		linenum = bytes.Count(content[last:bounds[0]], byteNewLine)
+		linenum += bytes.Count(content[last:bounds[0]], byteNewLine)
 		last = bounds[0]
 		begin, end := beginend(content, bounds[0], bounds[1])
+
+		if content[begin] == '\r' {
+			begin += 1
+		}
 
 		fmt.Printf("%d:%s\n", linenum, content[begin:end])
 	}
@@ -136,7 +146,7 @@ func searchFiles() {
 
 	select {
 	case err := <-errors:
-		errhandle(err)
+		errhandle(err, "some error")
 	default:
 	}
 }
