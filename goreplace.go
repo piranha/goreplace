@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"regexp"
 	"bytes"
+	"./highlight"
 )
 
 var Pattern *regexp.Regexp
@@ -93,7 +94,7 @@ func searchFile(p string, content []byte) {
 		}
 
 		if !hadOutput {
-			fmt.Printf("%s\n", p)
+			highlight.Printf("green", "%s\n", p)
 			hadOutput = true
 		}
 
@@ -105,11 +106,12 @@ func searchFile(p string, content []byte) {
 			begin += 1
 		}
 
-		fmt.Printf("%d:%s\n", linenum, content[begin:end])
+		highlight.Printf("bold yellow", "%d:", linenum)
+		highlight.Reprintf("on_yellow", Pattern, "%s\n", content[begin:end])
 	}
 
 	if hadOutput {
-		println()
+		fmt.Println("")
 	}
 }
 

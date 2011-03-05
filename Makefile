@@ -1,11 +1,25 @@
 include $(GOROOT)/src/Make.inc
 
+.SUFFIXES: .go .$O
+
 TARG=gr
-GOFILES=goreplace.go
+MAIN=goreplace
+GOFILES=highlight.go goreplace.go
 
-main: all
+all: $(TARG)
 
-run: main
-	./gr main
+run: all
+	./$(TARG) main
 
-include $(GOROOT)/src/Make.cmd
+### boilerplace
+
+OBJS=$(GOFILES:.go=.$O)
+
+$(TARG): $(OBJS)
+	$(LD) -o $(TARG) $(MAIN).$O
+
+clean:
+	rm -f $(OBJS) $(TARG)
+
+.go.$O:
+	$(GC) $<
