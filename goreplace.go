@@ -213,7 +213,7 @@ func FindAllIndex(re *regexp.Regexp, content []byte) (res []*LineInfo) {
 	if !*multiline {
 		for i, line := range bytes.Split(content, []byte("\n"), -1) {
 			if re.Match(line) {
-				res = append(res, &LineInfo{i, line})
+				res = append(res, &LineInfo{i+1, line})
 			}
 		}
 		return res
