@@ -14,6 +14,7 @@ var byteNewLine []byte = []byte("\n")
 // Used to prevent appear of sparse newline at the end of output
 var prependNewLine = false
 
+
 type StringList []string
 var IgnoreDirs = StringList{"autom4te.cache", "blib", "_build", ".bzr", ".cdv",
 	"cover_db", "CVS", "_darcs", "~.dep", "~.dot", ".git", ".hg", "~.nib",
@@ -23,10 +24,13 @@ type RegexpList []*regexp.Regexp
 var IgnoreFiles = regexpList([]string{`~$`, `#.+#$`, `[._].*\.swp$`, `core\.[0-9]+$`,
 	`\.pyc$`, `\.o$`, `\.6$`})
 
+
 var onlyName = goopt.Flag([]string{"-n", "--filename"}, []string{},
 	"print only filenames", "")
 var ignoreFiles = goopt.Strings([]string{"-x", "--exclude"}, "RE",
 	"exclude files that match the regexp from search")
+var multiline = goopt.Flag([]string{"-m", "--multiline"}, []string{},
+	"use multiline matching", "")
 
 func main() {
 	goopt.Description = func() string {
@@ -121,8 +125,6 @@ func (v *GRVisitor) VisitFile(fn string, fi *os.FileInfo) {
 }
 
 func (v *GRVisitor) SearchFile(p string, content []byte) {
-	linenum := 1
-	last := 0
 	hadOutput := false
 	binary := false
 
@@ -130,7 +132,7 @@ func (v *GRVisitor) SearchFile(p string, content []byte) {
 		binary = true
 	}
 
-	for _, bounds := range v.pattern.FindAllIndex(content, -1) {
+	for _, info := range FindAllIndex(v.pattern, content) {
 		if prependNewLine {
 			fmt.Println("")
 			prependNewLine = false
@@ -150,16 +152,8 @@ func (v *GRVisitor) SearchFile(p string, content []byte) {
 			return
 		}
 
-		linenum += bytes.Count(content[last:bounds[0]], byteNewLine)
-		last = bounds[0]
-		begin, end := beginend(content, bounds[0], bounds[1])
-
-		if content[begin] == '\r' {
-			begin += 1
-		}
-
-		highlight.Printf("bold yellow", "%d:", linenum)
-		highlight.Reprintf("on_yellow", v.pattern, "%s\n", content[begin:end])
+		highlight.Printf("bold yellow", "%d:", info.num)
+		highlight.Reprintfln("on_yellow", v.pattern, "%s", info.line)
 	}
 
 	if hadOutput {
@@ -175,13 +169,13 @@ func beginend(s []byte, start int, finish int) (begin int, end int) {
 
 	for i := start; i >= 0; i-- {
 		if s[i] == byteNewLine[0] {
-			// skip newline itself
 			begin = i + 1
 			break
 		}
 	}
 
-	for i := finish; i < len(s); i++ {
+	// -1 to check if current location is not end of string
+	for i := finish - 1; i < len(s); i++ {
 		if s[i] == byteNewLine[0] {
 			end = i
 			break
@@ -207,4 +201,30 @@ func (rl RegexpList) Match(s string) bool {
 		}
 	}
 	return false
+}
+
+type LineInfo struct {
+	num int
+	line []byte
+}
+
+// will return slice of [linenum, line] slices
+func FindAllIndex(re *regexp.Regexp, content []byte) (res []*LineInfo) {
+	if !*multiline {
+		for i, line := range bytes.Split(content, []byte("\n"), -1) {
+			if re.Match(line) {
+				res = append(res, &LineInfo{i, line})
+			}
+		}
+		return res
+	}
+
+	linenum, last := 1, 0
+	for _, bounds := range re.FindAllIndex(content, -1) {
+		linenum += bytes.Count(content[last:bounds[0]], byteNewLine)
+		last = bounds[0]
+		begin, end := beginend(content, bounds[0], bounds[1])
+		res = append(res, &LineInfo{linenum, content[begin:end]})
+	}
+	return res
 }
