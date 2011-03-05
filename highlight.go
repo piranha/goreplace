@@ -59,7 +59,7 @@ func Printf(colors string, format string, a ...interface{}) {
 func Reprintf(colors string, re *regexp.Regexp, format string, a ...interface{}) {
 	s := re.ReplaceAllStringFunc(fmt.Sprintf(format, a...),
 		func(wrap string) string {
-		return GetColors(colors) + wrap + GetColors("reset")
-	})
+			return GetColors(colors) + wrap + GetColors("reset")
+		})
 	fmt.Fprint(os.Stdout, s)
 }
