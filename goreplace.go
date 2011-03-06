@@ -38,7 +38,10 @@ var ignoreFiles = goopt.Strings([]string{"-x", "--exclude"}, "RE",
 	"exclude files that match the regexp from search")
 var singleline = goopt.Flag([]string{"-s", "--singleline"}, []string{},
 	"match on a single line (^/$ will be beginning/end of line)", "")
-
+var replace = goopt.String([]string{"-r", "--replace"}, "",
+	"replace found substrings with this string")
+var force = goopt.Flag([]string{"-f", "--force"}, []string{},
+	"force replacement in binary files", "")
 
 func main() {
 	goopt.Author = Author
@@ -116,10 +119,37 @@ func (v *GRVisitor) VisitFile(fn string, fi *os.FileInfo) {
 		return
 	}
 
-	f, err := os.Open(fn, os.O_RDONLY, 0666)
-	errhandle(err, "can't open file %s", fn)
+	f, content := v.GetFileAndContent(fn, fi)
 
-	content := make([]byte, fi.Size)
+	if len(*replace) > 0 {
+		changed, result := v.ReplaceInFile(fn, content)
+		if changed {
+			f.Seek(0, 0)
+			n, err := f.Write(result)
+			errhandle(err, "Error writing replacement in file %s", fn)
+			if int64(n) > fi.Size {
+				err := f.Truncate(int64(n))
+				errhandle(err, "Error truncating file to size %d", f)
+			}
+		}
+	} else {
+		v.SearchFile(fn, content)
+	}
+
+	f.Close()
+}
+
+func (v *GRVisitor) GetFileAndContent(fn string, fi *os.FileInfo) (f *os.File, content []byte) {
+	var err os.Error
+	if len(*replace) > 0 {
+		f, err = os.Open(fn, os.O_RDWR, 0666)
+		errhandle(err, "can't open file %s for reading and writing", fn)
+	} else {
+		f, err = os.Open(fn, os.O_RDONLY, 0666)
+		errhandle(err, "can't open file %s for reading", fn)
+	}
+
+	content = make([]byte, fi.Size)
 	n, err := f.Read(content)
 	errhandle(err, "can't read file %s", fn)
 	if int64(n) != fi.Size {
@@ -127,10 +157,9 @@ func (v *GRVisitor) VisitFile(fn string, fi *os.FileInfo) {
 			n, fi.Size))
 	}
 
-	v.SearchFile(fn, content)
-
-	f.Close()
+	return
 }
+
 
 func (v *GRVisitor) SearchFile(fn string, content []byte) {
 	hadOutput := false
@@ -140,7 +169,7 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 		binary = true
 	}
 
-	for _, info := range FindAllIndex(v.pattern, content) {
+	for _, info := range v.FindAllIndex(content) {
 		if prependNewLine {
 			fmt.Println("")
 			prependNewLine = false
@@ -169,13 +198,47 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 	}
 }
 
+func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, result []byte) {
+	changed = false
+	binary := false
+	changenum := 0
+
+	if *singleline {
+		panic("Can't handle singleline replacements yet")
+	}
+
+	if bytes.IndexByte(content, 0) != -1 {
+		binary = true
+	}
+
+	result = v.pattern.ReplaceAllFunc(content, func (s []byte) []byte {
+		if binary && !*force {
+			errhandle(
+				os.NewError("supply --force to force change of binary file"),
+				"")
+		}
+		if !changed {
+			changed = true
+			highlight.Printf("green", "%s", fn)
+		}
+
+		changenum += 1
+		return []byte(*replace)
+	})
+
+	highlight.Printf("bold yellow", " - %d changes made\n", changenum)
+
+	return changed, result
+}
+
+
 type LineInfo struct {
 	num  int
 	line []byte
 }
 
 // will return slice of [linenum, line] slices
-func FindAllIndex(re *regexp.Regexp, content []byte) (res []*LineInfo) {
+func (v *GRVisitor) FindAllIndex(content []byte) (res []*LineInfo) {
 	linenum := 1
 
 	if *singleline {
@@ -184,7 +247,7 @@ func FindAllIndex(re *regexp.Regexp, content []byte) (res []*LineInfo) {
 			if content[i] == '\n' {
 				end = i
 				line := content[begin:end]
-				if re.Match(line) {
+				if v.pattern.Match(line) {
 					res = append(res, &LineInfo{linenum, line})
 				}
 				linenum += 1
@@ -195,7 +258,7 @@ func FindAllIndex(re *regexp.Regexp, content []byte) (res []*LineInfo) {
 	}
 
 	last := 0
-	for _, bounds := range re.FindAllIndex(content, -1) {
+	for _, bounds := range v.pattern.FindAllIndex(content, -1) {
 		linenum += bytes.Count(content[last:bounds[0]], byteNewLine)
 		last = bounds[0]
 		begin, end := beginend(content, bounds[0], bounds[1])
