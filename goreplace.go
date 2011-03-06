@@ -11,7 +11,7 @@ import (
 )
 
 var Author = "Alexander Solovyov"
-var Version = "0.1"
+var Version = "0.2"
 var Summary = "gr [OPTS] string-to-search\n"
 var Description = `Go search and replace (not done yet) in files`
 
@@ -132,7 +132,7 @@ func (v *GRVisitor) VisitFile(fn string, fi *os.FileInfo) {
 	f.Close()
 }
 
-func (v *GRVisitor) SearchFile(p string, content []byte) {
+func (v *GRVisitor) SearchFile(fn string, content []byte) {
 	hadOutput := false
 	binary := false
 
@@ -149,10 +149,10 @@ func (v *GRVisitor) SearchFile(p string, content []byte) {
 		if !hadOutput {
 			hadOutput = true
 			if binary && !*onlyName {
-				fmt.Printf("Binary file %s matches\n", p)
+				fmt.Printf("Binary file %s matches\n", fn)
 				break
 			} else {
-				highlight.Printf("green", "%s\n", p)
+				highlight.Printf("green", "%s\n", fn)
 			}
 		}
 
