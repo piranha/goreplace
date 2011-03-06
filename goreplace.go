@@ -10,6 +10,11 @@ import (
 	"./highlight"
 )
 
+var Author = "Alexander Solovyov"
+var Version = "0.1"
+var Summary = "gr [OPTS] string-to-search\n"
+var Description = `Go search and replace (not done yet) in files`
+
 var byteNewLine []byte = []byte("\n")
 // Used to prevent appear of sparse newline at the end of output
 var prependNewLine = false
@@ -32,14 +37,14 @@ var onlyName = goopt.Flag([]string{"-n", "--filename"}, []string{},
 var ignoreFiles = goopt.Strings([]string{"-x", "--exclude"}, "RE",
 	"exclude files that match the regexp from search")
 var singleline = goopt.Flag([]string{"-s", "--singleline"}, []string{},
-	"match on a single line (^/$ will work)", "")
+	"match on a single line (^/$ will be beginning/end of line)", "")
 
 
 func main() {
-	goopt.Description = func() string {
-		return "Go search and replace in files"
-	}
-	goopt.Version = "0.1"
+	goopt.Author = Author
+	goopt.Version = Version
+	goopt.Summary = Summary
+	goopt.Description = func() string { return Description }
 	goopt.Parse(nil)
 
 	if len(goopt.Args) == 0 {
