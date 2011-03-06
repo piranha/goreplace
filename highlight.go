@@ -64,7 +64,7 @@ func Reprintf(colors string, re *regexp.Regexp, format string, a ...interface{})
 	fmt.Fprint(os.Stdout, s)
 }
 
-func Reprintfln(colors string, re *regexp.Regexp, format string, a ...interface{}) {
+func Reprintlnf(colors string, re *regexp.Regexp, format string, a ...interface{}) {
 	Reprintf(colors, re, format, a...)
 	fmt.Fprintln(os.Stdout)
 }

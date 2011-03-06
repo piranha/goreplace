@@ -16,11 +16,13 @@ var prependNewLine = false
 
 
 type StringList []string
+
 var IgnoreDirs = StringList{"autom4te.cache", "blib", "_build", ".bzr", ".cdv",
 	"cover_db", "CVS", "_darcs", "~.dep", "~.dot", ".git", ".hg", "~.nib",
-    ".pc", "~.plst", "RCS", "SCCS", "_sgbak", ".svn"}
+	".pc", "~.plst", "RCS", "SCCS", "_sgbak", ".svn"}
 
 type RegexpList []*regexp.Regexp
+
 var IgnoreFiles = regexpList([]string{`~$`, `#.+#$`, `[._].*\.swp$`, `core\.[0-9]+$`,
 	`\.pyc$`, `\.o$`, `\.6$`})
 
@@ -31,6 +33,7 @@ var ignoreFiles = goopt.Strings([]string{"-x", "--exclude"}, "RE",
 	"exclude files that match the regexp from search")
 var singleline = goopt.Flag([]string{"-s", "--singleline"}, []string{},
 	"match on a single line (^/$ will work)", "")
+
 
 func main() {
 	goopt.Description = func() string {
@@ -83,7 +86,7 @@ func searchFiles(pattern *regexp.Regexp) {
 	}
 }
 
-type GRVisitor struct{
+type GRVisitor struct {
 	pattern *regexp.Regexp
 }
 
@@ -140,7 +143,7 @@ func (v *GRVisitor) SearchFile(p string, content []byte) {
 
 		if !hadOutput {
 			hadOutput = true
-			if binary && !*onlyName{
+			if binary && !*onlyName {
 				fmt.Printf("Binary file %s matches\n", p)
 				break
 			} else {
@@ -153,7 +156,7 @@ func (v *GRVisitor) SearchFile(p string, content []byte) {
 		}
 
 		highlight.Printf("bold yellow", "%d:", info.num)
-		highlight.Reprintfln("on_yellow", v.pattern, "%s", info.line)
+		highlight.Reprintlnf("on_yellow", v.pattern, "%s", info.line)
 	}
 
 	if hadOutput {
@@ -161,50 +164,8 @@ func (v *GRVisitor) SearchFile(p string, content []byte) {
 	}
 }
 
-// Given a []byte, start and finish of some inner slice, will find nearest
-// newlines on both ends of this slice
-func beginend(s []byte, start int, finish int) (begin int, end int) {
-	begin = 0
-	end = len(s)
-
-	for i := start; i >= 0; i-- {
-		if s[i] == byteNewLine[0] {
-			begin = i + 1
-			break
-		}
-	}
-
-	// -1 to check if current location is not end of string
-	for i := finish - 1; i < len(s); i++ {
-		if s[i] == byteNewLine[0] {
-			end = i
-			break
-		}
-	}
-
-	return
-}
-
-func (sl StringList) Contains(s string) bool {
-	for _, x := range sl {
-		if x == s {
-			return true
-		}
-	}
-	return false
-}
-
-func (rl RegexpList) Match(s string) bool {
-	for _, x := range rl {
-		if x.Match([]byte(s)) {
-			return true
-		}
-	}
-	return false
-}
-
 type LineInfo struct {
-	num int
+	num  int
 	line []byte
 }
 
@@ -236,4 +197,48 @@ func FindAllIndex(re *regexp.Regexp, content []byte) (res []*LineInfo) {
 		res = append(res, &LineInfo{linenum, content[begin:end]})
 	}
 	return res
+}
+
+
+// Given a []byte, start and finish of some inner slice, will find nearest
+// newlines on both ends of this slice
+func beginend(s []byte, start int, finish int) (begin int, end int) {
+	begin = 0
+	end = len(s)
+
+	for i := start; i >= 0; i-- {
+		if s[i] == byteNewLine[0] {
+			begin = i + 1
+			break
+		}
+	}
+
+	// -1 to check if current location is not end of string
+	for i := finish - 1; i < len(s); i++ {
+		if s[i] == byteNewLine[0] {
+			end = i
+			break
+		}
+	}
+
+	return
+}
+
+
+func (sl StringList) Contains(s string) bool {
+	for _, x := range sl {
+		if x == s {
+			return true
+		}
+	}
+	return false
+}
+
+func (rl RegexpList) Match(s string) bool {
+	for _, x := range rl {
+		if x.Match([]byte(s)) {
+			return true
+		}
+	}
+	return false
 }
