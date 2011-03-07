@@ -58,18 +58,20 @@ func main() {
 	IgnoreFiles = append(IgnoreFiles, regexpList(*ignoreFiles)...)
 
 	pattern, err := regexp.Compile(goopt.Args[0])
-	errhandle(err, "can't compile regexp %s", goopt.Args[0])
+	errhandle(err, true, "can't compile regexp %s", goopt.Args[0])
 
 	searchFiles(pattern)
 }
 
-func errhandle(err os.Error, moreinfo string, a ...interface{}) {
+func errhandle(err os.Error, exit bool, moreinfo string, a ...interface{}) {
 	if err == nil {
 		return
 	}
 	fmt.Fprintf(os.Stderr, "ERR %s\n%s\n", err,
 		fmt.Sprintf(moreinfo, a...))
-	os.Exit(1)
+	if exit {
+		os.Exit(1)
+	}
 }
 
 func regexpList(sa []string) RegexpList {
@@ -89,7 +91,7 @@ func searchFiles(pattern *regexp.Regexp) {
 
 	select {
 	case err := <-errors:
-		errhandle(err, "some error")
+		errhandle(err, true, "some error")
 	default:
 	}
 }
@@ -106,7 +108,7 @@ func (v *GRVisitor) VisitDir(fn string, fi *os.FileInfo) bool {
 }
 
 func (v *GRVisitor) VisitFile(fn string, fi *os.FileInfo) {
-	if IgnoreFiles.Match(fn) {
+	if !fi.IsRegular() {
 		return
 	}
 
@@ -119,6 +121,10 @@ func (v *GRVisitor) VisitFile(fn string, fi *os.FileInfo) {
 		return
 	}
 
+	if IgnoreFiles.Match(fn) {
+		return
+	}
+
 	f, content := v.GetFileAndContent(fn, fi)
 
 	if len(*replace) > 0 {
@@ -126,10 +132,10 @@ func (v *GRVisitor) VisitFile(fn string, fi *os.FileInfo) {
 		if changed {
 			f.Seek(0, 0)
 			n, err := f.Write(result)
-			errhandle(err, "Error writing replacement in file %s", fn)
+			errhandle(err, true, "Error writing replacement in file %s", fn)
 			if int64(n) > fi.Size {
 				err := f.Truncate(int64(n))
-				errhandle(err, "Error truncating file to size %d", f)
+				errhandle(err, true, "Error truncating file to size %d", f)
 			}
 		}
 	} else {
@@ -141,17 +147,24 @@ func (v *GRVisitor) VisitFile(fn string, fi *os.FileInfo) {
 
 func (v *GRVisitor) GetFileAndContent(fn string, fi *os.FileInfo) (f *os.File, content []byte) {
 	var err os.Error
+	var msg string
+
 	if len(*replace) > 0 {
 		f, err = os.Open(fn, os.O_RDWR, 0666)
-		errhandle(err, "can't open file %s for reading and writing", fn)
+		msg = "can't open file %s for reading and writing"
 	} else {
 		f, err = os.Open(fn, os.O_RDONLY, 0666)
-		errhandle(err, "can't open file %s for reading", fn)
+		msg = "can't open file %s for reading"
+	}
+
+	if err != nil {
+		errhandle(err, false, msg, fn)
+		return
 	}
 
 	content = make([]byte, fi.Size)
 	n, err := f.Read(content)
-	errhandle(err, "can't read file %s", fn)
+	errhandle(err, true, "can't read file %s", fn)
 	if int64(n) != fi.Size {
 		panic(fmt.Sprintf("Not whole file was read, only %d from %d",
 			n, fi.Size))
@@ -215,6 +228,7 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 		if binary && !*force {
 			errhandle(
 				os.NewError("supply --force to force change of binary file"),
+				false,
 				"")
 		}
 		if !changed {
