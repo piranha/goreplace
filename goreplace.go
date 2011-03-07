@@ -2,7 +2,7 @@ package main
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"fmt"
 	"regexp"
 	"bytes"
@@ -87,7 +87,7 @@ func searchFiles(pattern *regexp.Regexp) {
 
 	errors := make(chan os.Error, 64)
 
-	path.Walk(".", v, errors)
+	filepath.Walk(".", v, errors)
 
 	select {
 	case err := <-errors:
