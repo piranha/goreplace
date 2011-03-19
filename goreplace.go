@@ -16,6 +16,7 @@ var Summary = "gr [OPTS] string-to-search\n"
 var Description = `Go search and replace (not done yet) in files`
 
 var byteNewLine []byte = []byte("\n")
+// FIXME: global variable :(
 // Used to prevent appear of sparse newline at the end of output
 var prependNewLine = false
 
@@ -24,7 +25,7 @@ type StringList []string
 
 var IgnoreDirs = StringList{"autom4te.cache", "blib", "_build", ".bzr", ".cdv",
 	"cover_db", "CVS", "_darcs", "~.dep", "~.dot", ".git", ".hg", "~.nib",
-	".pc", "~.plst", "RCS", "SCCS", "_sgbak", ".svn"}
+	".pc", "~.plst", "RCS", "SCCS", "_sgbak", ".svn", "_obj"}
 
 type RegexpList []*regexp.Regexp
 
@@ -175,7 +176,7 @@ func (v *GRVisitor) GetFileAndContent(fn string, fi *os.FileInfo) (f *os.File, c
 
 
 func (v *GRVisitor) SearchFile(fn string, content []byte) {
-	hadOutput := false
+	lines := IntList([]int{})
 	binary := false
 
 	if bytes.IndexByte(content, 0) != -1 {
@@ -183,13 +184,19 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 	}
 
 	for _, info := range v.FindAllIndex(content) {
+		if lines.Contains(info.num) {
+			continue
+		}
+
 		if prependNewLine {
 			fmt.Println("")
 			prependNewLine = false
 		}
 
-		if !hadOutput {
-			hadOutput = true
+		var first = len(lines) == 0
+		lines = append(lines, info.num)
+
+		if first {
 			if binary && !*onlyName {
 				fmt.Printf("Binary file %s matches\n", fn)
 				break
@@ -206,7 +213,7 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 		highlight.Reprintlnf("on_yellow", v.pattern, "%s", info.line)
 	}
 
-	if hadOutput {
+	if len(lines) > 0 {
 		prependNewLine = true
 	}
 }
@@ -228,8 +235,7 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 		if binary && !*force {
 			errhandle(
 				os.NewError("supply --force to force change of binary file"),
-				false,
-				"")
+				false, "")
 		}
 		if !changed {
 			changed = true
@@ -306,6 +312,16 @@ func beginend(s []byte, start int, finish int) (begin int, end int) {
 	return
 }
 
+
+type IntList []int
+func (il IntList) Contains(i int) bool {
+	for _, x := range il {
+		if x == i {
+			return true
+		}
+	}
+	return false
+}
 
 func (sl StringList) Contains(s string) bool {
 	for _, x := range sl {
