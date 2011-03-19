@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"regexp"
 	"bytes"
+	"strings"
 	goopt "github.com/droundy/goopt"
 	"./highlight"
 )
 
 var Author = "Alexander Solovyov"
-var Version = "0.2"
+var Version = "0.3"
 var Summary = "gr [OPTS] string-to-search\n"
-var Description = `Go search and replace (not done yet) in files`
 
 var byteNewLine []byte = []byte("\n")
 // FIXME: global variable :(
@@ -48,15 +48,19 @@ func main() {
 	goopt.Author = Author
 	goopt.Version = Version
 	goopt.Summary = Summary
-	goopt.Description = func() string { return Description }
 	goopt.Parse(nil)
+
+	IgnoreFiles = append(IgnoreFiles, regexpList(*ignoreFiles)...)
+
+	goopt.Summary += fmt.Sprintf("\nIgnored directories:\n\t%s\n",
+		IgnoreDirs.Join(", "))
+	goopt.Summary += fmt.Sprintf("\nIgnored files patterns:\n\t%s\n",
+		IgnoreFiles.Join(", "))
 
 	if len(goopt.Args) == 0 {
 		println(goopt.Usage())
 		return
 	}
-
-	IgnoreFiles = append(IgnoreFiles, regexpList(*ignoreFiles)...)
 
 	pattern, err := regexp.Compile(goopt.Args[0])
 	errhandle(err, true, "can't compile regexp %s", goopt.Args[0])
@@ -332,6 +336,10 @@ func (sl StringList) Contains(s string) bool {
 	return false
 }
 
+func (sl StringList) Join(sep string) string {
+	return strings.Join(sl, sep)
+}
+
 func (rl RegexpList) Match(s string) bool {
 	for _, x := range rl {
 		if x.Match([]byte(s)) {
@@ -339,4 +347,12 @@ func (rl RegexpList) Match(s string) bool {
 		}
 	}
 	return false
+}
+
+func (rl RegexpList) Join(sep string) string {
+	arr := make([]string, len(rl))
+	for i, x := range rl {
+		arr[i] = x.String()
+	}
+	return strings.Join(arr, sep)
 }
