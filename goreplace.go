@@ -41,7 +41,7 @@ var singleline = goopt.Flag([]string{"-s", "--singleline"}, []string{},
 	"match on a single line (^/$ will be beginning/end of line)", "")
 var replace = goopt.String([]string{"-r", "--replace"}, "",
 	"replace found substrings with this string")
-var force = goopt.Flag([]string{"-f", "--force"}, []string{},
+var force = goopt.Flag([]string{"--force"}, []string{},
 	"force replacement in binary files", "")
 
 func main() {
