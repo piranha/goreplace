@@ -2,3 +2,6 @@
 ^_obj/
 ^gr$
 ^trash/
+
+syntax: glob
+*.pyc

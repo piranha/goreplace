@@ -4,7 +4,7 @@ include $(GOROOT)/src/Make.inc
 
 TARG=gr
 MAIN=goreplace
-GOFILES=highlight.go goreplace.go
+GOFILES=highlight.go ignore.go goreplace.go
 
 all: $(TARG)
 

@@ -9,6 +9,7 @@ import (
 	"strings"
 	goopt "github.com/droundy/goopt"
 	"./highlight"
+	"./ignore"
 )
 
 var Author = "Alexander Solovyov"
@@ -29,8 +30,8 @@ var IgnoreDirs = StringList{"autom4te.cache", "blib", "_build", ".bzr", ".cdv",
 
 type RegexpList []*regexp.Regexp
 
-var IgnoreFiles = regexpList([]string{`~$`, `#.+#$`, `[._].*\.swp$`, `core\.[0-9]+$`,
-	`\.pyc$`, `\.o$`, `\.6$`})
+var IgnoreFiles = newRegexpList([]string{`~$`, `#.+#$`, `[._].*\.swp$`,
+	`core\.[0-9]+$`, `\.pyc$`, `\.o$`, `\.6$`})
 
 
 var onlyName = goopt.Flag([]string{"-n", "--filename"}, []string{},
@@ -50,12 +51,11 @@ func main() {
 	goopt.Summary = Summary
 	goopt.Parse(nil)
 
-	IgnoreFiles = append(IgnoreFiles, regexpList(*ignoreFiles)...)
+	cwd, _ := os.Getwd()
+	ignorer := ignore.New(cwd)
+	goopt.Summary += fmt.Sprintf("\n%s\n", ignorer)
 
-	goopt.Summary += fmt.Sprintf("\nIgnored directories:\n\t%s\n",
-		IgnoreDirs.Join(", "))
-	goopt.Summary += fmt.Sprintf("\nIgnored files patterns:\n\t%s\n",
-		IgnoreFiles.Join(", "))
+	ignorer.Append(*ignoreFiles)
 
 	if len(goopt.Args) == 0 {
 		println(goopt.Usage())
@@ -65,7 +65,7 @@ func main() {
 	pattern, err := regexp.Compile(goopt.Args[0])
 	errhandle(err, true, "can't compile regexp %s", goopt.Args[0])
 
-	searchFiles(pattern)
+	searchFiles(pattern, ignorer)
 }
 
 func errhandle(err os.Error, exit bool, moreinfo string, a ...interface{}) {
@@ -79,16 +79,8 @@ func errhandle(err os.Error, exit bool, moreinfo string, a ...interface{}) {
 	}
 }
 
-func regexpList(sa []string) RegexpList {
-	ra := make(RegexpList, len(sa))
-	for i, s := range sa {
-		ra[i] = regexp.MustCompile(s)
-	}
-	return ra
-}
-
-func searchFiles(pattern *regexp.Regexp) {
-	v := &GRVisitor{pattern}
+func searchFiles(pattern *regexp.Regexp, ignorer ignore.Ignorer) {
+	v := &GRVisitor{pattern, ignorer}
 
 	errors := make(chan os.Error, 64)
 
@@ -103,13 +95,11 @@ func searchFiles(pattern *regexp.Regexp) {
 
 type GRVisitor struct {
 	pattern *regexp.Regexp
+	ignorer ignore.Ignorer
 }
 
 func (v *GRVisitor) VisitDir(fn string, fi *os.FileInfo) bool {
-	if IgnoreDirs.Contains(fi.Name) {
-		return false
-	}
-	return true
+	return !v.ignorer.Ignore(fi.Name, true)
 }
 
 func (v *GRVisitor) VisitFile(fn string, fi *os.FileInfo) {
@@ -126,28 +116,28 @@ func (v *GRVisitor) VisitFile(fn string, fi *os.FileInfo) {
 		return
 	}
 
-	if IgnoreFiles.Match(fn) {
+	if v.ignorer.Ignore(fn, false) {
 		return
 	}
 
 	f, content := v.GetFileAndContent(fn, fi)
+	defer f.Close()
 
-	if len(*replace) > 0 {
-		changed, result := v.ReplaceInFile(fn, content)
-		if changed {
-			f.Seek(0, 0)
-			n, err := f.Write(result)
-			errhandle(err, true, "Error writing replacement in file %s", fn)
-			if int64(n) > fi.Size {
-				err := f.Truncate(int64(n))
-				errhandle(err, true, "Error truncating file to size %d", f)
-			}
-		}
-	} else {
+	if len(*replace) == 0 {
 		v.SearchFile(fn, content)
+		return
 	}
 
-	f.Close()
+	changed, result := v.ReplaceInFile(fn, content)
+	if changed {
+		f.Seek(0, 0)
+		n, err := f.Write(result)
+		errhandle(err, true, "Error writing replacement in file %s", fn)
+		if int64(n) > fi.Size {
+			err := f.Truncate(int64(n))
+			errhandle(err, true, "Error truncating file to size %d", f)
+		}
+	}
 }
 
 func (v *GRVisitor) GetFileAndContent(fn string, fi *os.FileInfo) (f *os.File, content []byte) {
@@ -222,6 +212,13 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 	}
 }
 
+func getSuffix(num int) string {
+	if num > 1 {
+		return "s"
+	}
+	return ""
+}
+
 func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, result []byte) {
 	changed = false
 	binary := false
@@ -250,7 +247,10 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 		return []byte(*replace)
 	})
 
-	highlight.Printf("bold yellow", " - %d changes made\n", changenum)
+	if changenum > 0 {
+		highlight.Printf("bold yellow", " - %d change%s made\n",
+			changenum, getSuffix(changenum))
+	}
 
 	return changed, result
 }
@@ -355,4 +355,12 @@ func (rl RegexpList) Join(sep string) string {
 		arr[i] = x.String()
 	}
 	return strings.Join(arr, sep)
+}
+
+func newRegexpList(sa []string) RegexpList {
+	ra := make(RegexpList, len(sa))
+	for i, s := range sa {
+		ra[i] = regexp.MustCompile(s)
+	}
+	return ra
 }
