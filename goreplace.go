@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"regexp"
 	"bytes"
-	"strings"
 	goopt "github.com/droundy/goopt"
 	"./highlight"
 	"./ignore"
@@ -20,18 +19,6 @@ var byteNewLine []byte = []byte("\n")
 // FIXME: global variable :(
 // Used to prevent appear of sparse newline at the end of output
 var prependNewLine = false
-
-
-type StringList []string
-
-var IgnoreDirs = StringList{"autom4te.cache", "blib", "_build", ".bzr", ".cdv",
-	"cover_db", "CVS", "_darcs", "~.dep", "~.dot", ".git", ".hg", "~.nib",
-	".pc", "~.plst", "RCS", "SCCS", "_sgbak", ".svn", "_obj"}
-
-type RegexpList []*regexp.Regexp
-
-var IgnoreFiles = newRegexpList([]string{`~$`, `#.+#$`, `[._].*\.swp$`,
-	`core\.[0-9]+$`, `\.pyc$`, `\.o$`, `\.6$`})
 
 
 var onlyName = goopt.Flag([]string{"-n", "--filename"}, []string{},
@@ -325,42 +312,4 @@ func (il IntList) Contains(i int) bool {
 		}
 	}
 	return false
-}
-
-func (sl StringList) Contains(s string) bool {
-	for _, x := range sl {
-		if x == s {
-			return true
-		}
-	}
-	return false
-}
-
-func (sl StringList) Join(sep string) string {
-	return strings.Join(sl, sep)
-}
-
-func (rl RegexpList) Match(s string) bool {
-	for _, x := range rl {
-		if x.Match([]byte(s)) {
-			return true
-		}
-	}
-	return false
-}
-
-func (rl RegexpList) Join(sep string) string {
-	arr := make([]string, len(rl))
-	for i, x := range rl {
-		arr[i] = x.String()
-	}
-	return strings.Join(arr, sep)
-}
-
-func newRegexpList(sa []string) RegexpList {
-	ra := make(RegexpList, len(sa))
-	for i, s := range sa {
-		ra[i] = regexp.MustCompile(s)
-	}
-	return ra
 }
