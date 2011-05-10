@@ -120,7 +120,7 @@ func (v *GRVisitor) VisitFile(fn string, fi *os.FileInfo) {
 		f.Seek(0, 0)
 		n, err := f.Write(result)
 		errhandle(err, true, "Error writing replacement in file %s", fn)
-		if int64(n) > fi.Size {
+		if int64(n) < fi.Size {
 			err := f.Truncate(int64(n))
 			errhandle(err, true, "Error truncating file to size %d", f)
 		}
