@@ -217,7 +217,7 @@ func NewGitIgnorer(wd string, f *os.File) *GitIgnorer {
 }
 
 func (i *GitIgnorer) Ignore(fn string, isdir bool) bool {
-	return true
+	return false
 }
 
 func (i *GitIgnorer) Append(pats []string) {
