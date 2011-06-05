@@ -132,10 +132,10 @@ func (v *GRVisitor) GetFileAndContent(fn string, fi *os.FileInfo) (f *os.File, c
 	var msg string
 
 	if len(*replace) > 0 {
-		f, err = os.Open(fn, os.O_RDWR, 0666)
+		f, err = os.OpenFile(fn, os.O_RDWR, 0666)
 		msg = "can't open file %s for reading and writing"
 	} else {
-		f, err = os.Open(fn, os.O_RDONLY, 0666)
+		f, err = os.Open(fn)
 		msg = "can't open file %s for reading"
 	}
 

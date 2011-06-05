@@ -3,7 +3,7 @@ package ignore
 import (
 	"os"
 	"path/filepath"
-	"encoding/line"
+	"bufio"
 	"fmt"
 	"regexp"
 	"bytes"
@@ -26,12 +26,12 @@ func New(wd string) Ignorer {
 			break
 		}
 
-		f, err := os.Open(filepath.Join(path, ".hgignore"), os.O_RDONLY, 0)
+		f, err := os.Open(filepath.Join(path, ".hgignore"))
 		if err == nil {
 			return NewHgIgnorer(wd, f)
 		}
 
-		f, err = os.Open(filepath.Join(path, ".gitignore"), os.O_RDONLY, 0)
+		f, err = os.Open(filepath.Join(path, ".gitignore"))
 		if err == nil {
 			return NewGitIgnorer(wd, f)
 		}
@@ -64,10 +64,33 @@ func NewGeneralIgnorer() *GeneralIgnorer {
 }
 
 func (i *GeneralIgnorer) Ignore(fn string, isdir bool) bool {
-	return true
+	if isdir {
+		base := filepath.Base(fn)
+		for _, x := range i.dirs {
+			if base == x {
+				return true
+			}
+		}
+	}
+
+	for _, x := range i.res {
+		if x.Match([]byte(fn)) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (i *GeneralIgnorer) Append(pats []string) {
+	for _, pat := range pats {
+		re, err := regexp.Compile(pat)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "ERR can't compile pattern %s\n", pat)
+			continue
+		}
+		i.res = append(i.res, re)
+	}
 }
 
 func (i *GeneralIgnorer) String() string {
@@ -90,7 +113,7 @@ var hgSyntaxes = map[string] bool {
 }
 
 func NewHgIgnorer(wd string, f *os.File) *HgIgnorer {
-	reader := line.NewReader(f, 1000)
+	reader := bufio.NewReader(f)
 	isRe := true
 
 	res := []*regexp.Regexp{}
@@ -207,20 +230,52 @@ func (i *HgIgnorer) String() string {
 
 // read .gitignore and ignore patterns from there
 type GitIgnorer struct {
-	wd string
+	prefix string
 	f *os.File
 	entries []string
+	res []*regexp.Regexp
 }
 
 func NewGitIgnorer(wd string, f *os.File) *GitIgnorer {
-	return &GitIgnorer{wd, f, []string{}}
+	// reader := bufio.NewReader(f)
+
+	var prefix string
+	basepath := filepath.Clean(filepath.Join(f.Name(), ".."))
+	if strings.HasPrefix(wd, basepath) {
+		prefix = wd[len(basepath):]
+		if len(prefix) > 0 && prefix[0] == '/' {
+			prefix = prefix[1:]
+		}
+	} else {
+		prefix = ""
+	}
+
+	return &GitIgnorer{prefix, f, []string{}, []*regexp.Regexp{}}
 }
 
 func (i *GitIgnorer) Ignore(fn string, isdir bool) bool {
+	if len(i.prefix) > 0 {
+		fn = filepath.Join(i.prefix, fn)
+	}
+
+	for _, x := range i.res {
+		if x.Match([]byte(fn)) {
+			return true
+		}
+	}
+
 	return false
 }
 
 func (i *GitIgnorer) Append(pats []string) {
+	for _, pat := range pats {
+		re, err := regexp.Compile(pat)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "ERR can't compile pattern %s\n", pat)
+			continue
+		}
+		i.res = append(i.res, re)
+	}
 }
 
 func (i *GitIgnorer) String() string {
