@@ -46,7 +46,7 @@ func getcolor(color string) string {
 }
 
 func GetColors(colors string) (cs string) {
-	for _, color := range strings.Split(colors, " ", -1) {
+	for _, color := range strings.Split(colors, " ") {
 		cs += getcolor(color)
 	}
 	return cs
