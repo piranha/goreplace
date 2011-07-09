@@ -15,6 +15,18 @@ type Ignorer interface {
 	Append(pats []string)
 }
 
+func errhandle(err os.Error, exit bool, moreinfo string, a ...interface{}) bool {
+	if err == nil {
+		return false
+	}
+	fmt.Fprintf(os.Stderr, "ERR %s\n%s\n", err,
+		fmt.Sprintf(moreinfo, a...))
+	if exit {
+		os.Exit(1)
+	}
+	return true
+}
+
 func New(wd string) Ignorer {
 	path := wd
 	if path[0] != '/' {
@@ -85,8 +97,7 @@ func (i *GeneralIgnorer) Ignore(fn string, isdir bool) bool {
 func (i *GeneralIgnorer) Append(pats []string) {
 	for _, pat := range pats {
 		re, err := regexp.Compile(pat)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "ERR can't compile pattern %s\n", pat)
+		if errhandle(err, false, "can't compile pattern %s\n", pat) {
 			continue
 		}
 		i.res = append(i.res, re)
@@ -150,10 +161,15 @@ func NewHgIgnorer(wd string, f *os.File) *HgIgnorer {
 		}
 
 		// actually append line
+		pat := string(line)
 		if isRe {
-			res = append(res, regexp.MustCompile(string(line)))
+			re, err := regexp.Compile(pat)
+			if errhandle(err, false, "can't compile pattern %s", pat) {
+				continue
+			}
+			res = append(res, re)
 		} else {
-			globs = append(globs, string(line))
+			globs = append(globs, pat)
 		}
 	}
 
@@ -198,8 +214,7 @@ func (i *HgIgnorer) Ignore(fn string, isdir bool) bool {
 func (i *HgIgnorer) Append(pats []string) {
 	for _, pat := range pats {
 		re, err := regexp.Compile(pat)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "ERR can't compile pattern %s\n", pat)
+		if errhandle(err, false, "can't compile pattern %s", pat) {
 			continue
 		}
 		i.res = append(i.res, re)
@@ -270,8 +285,7 @@ func (i *GitIgnorer) Ignore(fn string, isdir bool) bool {
 func (i *GitIgnorer) Append(pats []string) {
 	for _, pat := range pats {
 		re, err := regexp.Compile(pat)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "ERR can't compile pattern %s\n", pat)
+		if errhandle(err, false, "can't compile pattern %s", pat) {
 			continue
 		}
 		i.res = append(i.res, re)
