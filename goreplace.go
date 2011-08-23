@@ -12,7 +12,7 @@ import (
 )
 
 var Author = "Alexander Solovyov"
-var Version = "0.3"
+var Version = "0.3.2"
 var Summary = "gr [OPTS] string-to-search\n"
 
 var byteNewLine []byte = []byte("\n")
@@ -31,16 +31,28 @@ var replace = goopt.String([]string{"-r", "--replace"}, "",
 	"replace found substrings with this string")
 var force = goopt.Flag([]string{"--force"}, []string{},
 	"force replacement in binary files", "")
+var showVersion = goopt.Flag([]string{"-v", "--version"}, []string{},
+	"show version and exit", "")
 
 func main() {
 	goopt.Author = Author
 	goopt.Version = Version
 	goopt.Summary = Summary
-	goopt.Parse(nil)
+	goopt.Usage = func() string {
+		return fmt.Sprintf("Usage of goreplace %s:\n\t", Version) +
+			goopt.Summary + "\n" + goopt.Help()
+	}
 
 	cwd, _ := os.Getwd()
 	ignorer := ignore.New(cwd)
-	goopt.Summary += fmt.Sprintf("\n%s\n", ignorer)
+	goopt.Summary += fmt.Sprintf("\n%s", ignorer)
+
+	goopt.Parse(nil)
+
+	if *showVersion {
+		println("goreplace " + goopt.Version)
+		return
+	}
 
 	ignorer.Append(*ignoreFiles)
 
