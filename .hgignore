@@ -1,7 +1,0 @@
-\.6$
-^_obj/
-^gr$
-^trash/
-
-syntax: glob
-*.pyc
