@@ -20,7 +20,6 @@ var byteNewLine []byte = []byte("\n")
 // Used to prevent appear of sparse newline at the end of output
 var prependNewLine = false
 
-
 var onlyName = goopt.Flag([]string{"-n", "--filename"}, []string{},
 	"print only filenames", "")
 var ignoreFiles = goopt.Strings([]string{"-x", "--exclude"}, "RE",
@@ -167,7 +166,6 @@ func (v *GRVisitor) GetFileAndContent(fn string, fi *os.FileInfo) (f *os.File, c
 	return
 }
 
-
 func (v *GRVisitor) SearchFile(fn string, content []byte) {
 	lines := IntList([]int{})
 	binary := false
@@ -231,7 +229,7 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 		binary = true
 	}
 
-	result = v.pattern.ReplaceAllFunc(content, func (s []byte) []byte {
+	result = v.pattern.ReplaceAllFunc(content, func(s []byte) []byte {
 		if binary && !*force {
 			errhandle(
 				os.NewError("supply --force to force change of binary file"),
@@ -253,7 +251,6 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 
 	return changed, result
 }
-
 
 type LineInfo struct {
 	num  int
@@ -290,7 +287,6 @@ func (v *GRVisitor) FindAllIndex(content []byte) (res []*LineInfo) {
 	return res
 }
 
-
 // Given a []byte, start and finish of some inner slice, will find nearest
 // newlines on both ends of this slice
 func beginend(s []byte, start int, finish int) (begin int, end int) {
@@ -315,8 +311,8 @@ func beginend(s []byte, start int, finish int) (begin int, end int) {
 	return
 }
 
-
 type IntList []int
+
 func (il IntList) Contains(i int) bool {
 	for _, x := range il {
 		if x == i {

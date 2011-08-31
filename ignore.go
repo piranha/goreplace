@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"bytes"
 	"strings"
-	)
+)
 
 type Ignorer interface {
 	Ignore(fn string, isdir bool) bool
@@ -57,7 +57,7 @@ func New(wd string) Ignorer {
 // Ignore common patterns
 type GeneralIgnorer struct {
 	dirs []string
-	res []*regexp.Regexp
+	res  []*regexp.Regexp
 	both []*regexp.Regexp
 }
 
@@ -108,19 +108,18 @@ func (i *GeneralIgnorer) String() string {
 	return "General ignorer"
 }
 
-
 // read .hgignore and ignore patterns from there
 type HgIgnorer struct {
 	prefix string
-	f *os.File
-	res []*regexp.Regexp
-	globs []string
+	f      *os.File
+	res    []*regexp.Regexp
+	globs  []string
 }
 
-var hgSyntaxes = map[string] bool {
-	"re": true,
+var hgSyntaxes = map[string]bool{
+	"re":     true,
 	"regexp": true,
-	"glob": false,
+	"glob":   false,
 }
 
 func NewHgIgnorer(wd string, f *os.File) *HgIgnorer {
@@ -242,13 +241,12 @@ func (i *HgIgnorer) String() string {
 	return desc
 }
 
-
 // read .gitignore and ignore patterns from there
 type GitIgnorer struct {
-	prefix string
-	f *os.File
+	prefix  string
+	f       *os.File
 	entries []string
-	res []*regexp.Regexp
+	res     []*regexp.Regexp
 }
 
 func NewGitIgnorer(wd string, f *os.File) *GitIgnorer {
