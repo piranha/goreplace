@@ -15,7 +15,8 @@ type Ignorer interface {
 	Append(pats []string)
 }
 
-func errhandle(err os.Error, exit bool, moreinfo string, a ...interface{}) bool {
+func errhandle(err os.Error, exit bool, moreinfo string,
+	a ...interface{}) bool {
 	if err == nil {
 		return false
 	}
@@ -231,11 +232,7 @@ func (i *HgIgnorer) String() string {
 	}
 
 	if len(i.globs) > 0 {
-		desc += "\tglobs: "
-		for _, x := range i.globs {
-			desc += x + " "
-		}
-		desc += "\n"
+		desc += "\tglobs: " + strings.Join(i.globs, " ") + "\n"
 	}
 
 	return desc
@@ -243,15 +240,15 @@ func (i *HgIgnorer) String() string {
 
 // read .gitignore and ignore patterns from there
 type GitIgnorer struct {
+	basepath string
 	prefix  string
 	f       *os.File
-	entries []string
+	globs   []string
+	dirs    []string
 	res     []*regexp.Regexp
 }
 
 func NewGitIgnorer(wd string, f *os.File) *GitIgnorer {
-	// reader := bufio.NewReader(f)
-
 	var prefix string
 	basepath := filepath.Clean(filepath.Join(f.Name(), ".."))
 	if strings.HasPrefix(wd, basepath) {
@@ -263,16 +260,58 @@ func NewGitIgnorer(wd string, f *os.File) *GitIgnorer {
 		prefix = ""
 	}
 
-	return &GitIgnorer{prefix, f, []string{}, []*regexp.Regexp{}}
+	globs := []string{}
+	dirs := []string{}
+
+	reader := bufio.NewReader(f)
+	for {
+		line, _, err := reader.ReadLine()
+		if err != nil {
+			break
+		}
+
+		if line[0] == '#' {
+			continue
+		}
+
+		line = bytes.TrimRight(line, " \t")
+		if len(line) == 0 {
+			continue
+		}
+
+		slashpos := bytes.IndexByte(line, '/')
+		switch slashpos {
+		case -1:
+			globs = append(globs, string(line))
+		case len(line) - 1:
+			dirs = append(dirs, string(line))
+		default:
+			// if this is wrong, then blame writers of gitignore manual,
+			// it's unobvious as possible
+			globs = append(globs, filepath.Join(basepath, string(line)))
+		}
+	}
+
+	return &GitIgnorer{basepath, prefix, f, globs, dirs, []*regexp.Regexp{}}
 }
 
 func (i *GitIgnorer) Ignore(fn string, isdir bool) bool {
-	if len(i.prefix) > 0 {
-		fn = filepath.Join(i.prefix, fn)
+	fullpath := filepath.Join(i.basepath, i.prefix, fn)
+	prefpath := filepath.Join(i.prefix, fn)
+	dirpath := prefpath[:len(prefpath)-len(filepath.Base(prefpath))]
+
+	for _, pat := range i.globs {
+		if strings.Index(pat, "/") != -1 {
+			if m, _ := filepath.Match(pat, fullpath); m {
+				return true
+			}
+		} else if m, _ := filepath.Match(pat, fn); m {
+			return true
+		}
 	}
 
-	for _, x := range i.res {
-		if x.Match([]byte(fn)) {
+	for _, dir := range i.dirs {
+		if strings.Contains(dirpath, dir) {
 			return true
 		}
 	}
@@ -291,5 +330,21 @@ func (i *GitIgnorer) Append(pats []string) {
 }
 
 func (i *GitIgnorer) String() string {
-	return fmt.Sprintf("Ignoring patterns from %s", i.f.Name())
+	desc := fmt.Sprintf("Ignoring patterns from %s:\n", i.f.Name())
+	if len(i.globs) > 0 {
+		desc += "\tglobs: "
+		for _, x := range i.globs {
+			if strings.HasPrefix(x, i.basepath) {
+				desc += x[len(i.basepath):] + " "
+			} else {
+				desc += x + " "
+			}
+		}
+	}
+
+	if len(i.dirs) > 0 {
+		desc += "\tdirs: " + strings.Join(i.dirs, " ") + "\n"
+	}
+
+	return desc
 }
