@@ -138,7 +138,8 @@ func (v *GRVisitor) VisitFile(fn string, fi *os.FileInfo) {
 	}
 }
 
-func (v *GRVisitor) GetFileAndContent(fn string, fi *os.FileInfo) (f *os.File, content []byte) {
+func (v *GRVisitor) GetFileAndContent(fn string, fi *os.FileInfo) (
+	f *os.File, content []byte) {
 	var err os.Error
 	var msg string
 
@@ -216,7 +217,8 @@ func getSuffix(num int) string {
 	return ""
 }
 
-func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, result []byte) {
+func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (
+	changed bool, result []byte) {
 	changed = false
 	binary := false
 	changenum := 0
