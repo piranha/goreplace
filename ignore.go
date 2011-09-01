@@ -340,6 +340,7 @@ func (i *GitIgnorer) String() string {
 				desc += x + " "
 			}
 		}
+		desc += "\n"
 	}
 
 	if len(i.dirs) > 0 {
