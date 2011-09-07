@@ -12,7 +12,7 @@ import (
 )
 
 var Author = "Alexander Solovyov"
-var Version = "0.3.2"
+var Version = "0.3.3"
 var Summary = "gr [OPTS] string-to-search\n"
 
 var byteNewLine []byte = []byte("\n")
