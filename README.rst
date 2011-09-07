@@ -18,12 +18,13 @@ starting from the current directory, just like this::
 
   gr somestring
 
-Some directories and files are ignored by default, just run ``gr`` without any
+Some directories and files can be ignored by default (``gr`` is looking for your
+``.hgignore``/``.gitignore`` in parent directories), just run ``gr`` without any
 arguments to see help message - it contains information about them.
 
 If you need to replace found strings with something, just pass ``-r
 replacement`` option and they will be replaced in-place. No backups are made
-(not that you need them, right? You're using version control, aren't you?)
+(not that you need them, right? You're using version control, aren't you?).
 Unfortunately only plain strings are supported as replacement, no regexp
 submatch support yet (planned, though).
 
