@@ -298,7 +298,12 @@ func NewGitIgnorer(wd string, f *os.File) *GitIgnorer {
 func (i *GitIgnorer) Ignore(fn string, isdir bool) bool {
 	fullpath := filepath.Join(i.basepath, i.prefix, fn)
 	prefpath := filepath.Join(i.prefix, fn)
-	dirpath := prefpath[:len(prefpath)-len(filepath.Base(prefpath))]
+	base := filepath.Base(prefpath)
+	dirpath := prefpath[:len(prefpath)-len(base)]
+
+	if isdir && base == ".git" {
+		return true
+	}
 
 	for _, pat := range i.globs {
 		if strings.Index(pat, "/") != -1 {
