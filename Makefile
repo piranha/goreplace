@@ -18,6 +18,9 @@ OBJS=$(GOFILES:.go=.$O)
 $(TARG): $(OBJS)
 	$(LD) -o $(TARG) $(MAIN).$O
 
+prod: $(OBJS)
+	$(LD) -s -o $(TARG) $(MAIN).$O
+
 clean:
 	rm -f $(OBJS) $(TARG)
 
