@@ -15,7 +15,7 @@ type Ignorer interface {
 	Append(pats []string)
 }
 
-func errhandle(err os.Error, exit bool, moreinfo string,
+func errhandle(err error, exit bool, moreinfo string,
 	a ...interface{}) bool {
 	if err == nil {
 		return false
@@ -270,12 +270,12 @@ func NewGitIgnorer(wd string, f *os.File) *GitIgnorer {
 			break
 		}
 
-		if line[0] == '#' {
+		line = bytes.TrimRight(line, " \t")
+		if len(line) == 0 {
 			continue
 		}
 
-		line = bytes.TrimRight(line, " \t")
-		if len(line) == 0 {
+		if line[0] == '#' {
 			continue
 		}
 

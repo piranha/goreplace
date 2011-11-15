@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 	"bytes"
+	"errors"
 	goopt "github.com/droundy/goopt"
 	"./highlight"
 	"./ignore"
@@ -17,7 +18,7 @@ var Summary = "gr [OPTS] string-to-search\n"
 
 var byteNewLine []byte = []byte("\n")
 // FIXME: global variable :(
-// Used to prevent appear of sparse newline at the end of output
+// Used to prevent sparse newline at the end of output
 var prependNewLine = false
 
 var onlyName = goopt.Flag([]string{"-n", "--filename"}, []string{},
@@ -66,12 +67,11 @@ func main() {
 	searchFiles(pattern, ignorer)
 }
 
-func errhandle(err os.Error, exit bool, moreinfo string, a ...interface{}) {
+func errhandle(err error, exit bool, moreinfo string, a ...interface{}) {
 	if err == nil {
 		return
 	}
-	fmt.Fprintf(os.Stderr, "ERR %s\n%s\n", err,
-		fmt.Sprintf(moreinfo, a...))
+	fmt.Fprintf(os.Stderr, "ERR %s\n%s\n", err, fmt.Sprintf(moreinfo, a...))
 	if exit {
 		os.Exit(1)
 	}
@@ -80,14 +80,33 @@ func errhandle(err os.Error, exit bool, moreinfo string, a ...interface{}) {
 func searchFiles(pattern *regexp.Regexp, ignorer ignore.Ignorer) {
 	v := &GRVisitor{pattern, ignorer}
 
-	errors := make(chan os.Error, 64)
+	errors := make(chan error, 64)
 
-	filepath.Walk(".", v, errors)
+	filepath.Walk(".", walkFunc(v, errors))
 
 	select {
 	case err := <-errors:
 		errhandle(err, true, "some error")
 	default:
+	}
+}
+
+func walkFunc(v *GRVisitor, errors chan <- error) filepath.WalkFunc {
+	return func (fn string, fi *os.FileInfo, err error) error {
+		if err != nil {
+			errors <- err
+			return nil
+		}
+
+		if fi.IsDirectory() {
+			if !v.VisitDir(fn, fi) {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+
+		v.VisitFile(fn, fi)
+		return nil
 	}
 }
 
@@ -140,7 +159,7 @@ func (v *GRVisitor) VisitFile(fn string, fi *os.FileInfo) {
 
 func (v *GRVisitor) GetFileAndContent(fn string, fi *os.FileInfo) (
 	f *os.File, content []byte) {
-	var err os.Error
+	var err error
 	var msg string
 
 	if len(*replace) > 0 {
@@ -234,7 +253,7 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (
 	result = v.pattern.ReplaceAllFunc(content, func(s []byte) []byte {
 		if binary && !*force {
 			errhandle(
-				os.NewError("supply --force to force change of binary file"),
+				errors.New("supply --force to force change of binary file"),
 				false, "")
 		}
 		if !changed {
