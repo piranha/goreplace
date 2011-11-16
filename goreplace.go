@@ -17,9 +17,6 @@ var Version = "0.3.3"
 var Summary = "gr [OPTS] string-to-search\n"
 
 var byteNewLine []byte = []byte("\n")
-// FIXME: global variable :(
-// Used to prevent sparse newline at the end of output
-var prependNewLine = false
 
 var onlyName = goopt.Flag([]string{"-n", "--filename"}, []string{},
 	"print only filenames", "")
@@ -78,7 +75,7 @@ func errhandle(err error, exit bool, moreinfo string, a ...interface{}) {
 }
 
 func searchFiles(pattern *regexp.Regexp, ignorer ignore.Ignorer) {
-	v := &GRVisitor{pattern, ignorer}
+	v := &GRVisitor{pattern, ignorer, false}
 
 	errors := make(chan error, 64)
 
@@ -113,6 +110,8 @@ func walkFunc(v *GRVisitor, errors chan <- error) filepath.WalkFunc {
 type GRVisitor struct {
 	pattern *regexp.Regexp
 	ignorer ignore.Ignorer
+	// Used to prevent sparse newline at the end of output
+	prependNewLine bool
 }
 
 func (v *GRVisitor) VisitDir(fn string, fi *os.FileInfo) bool {
@@ -199,9 +198,9 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 			continue
 		}
 
-		if prependNewLine {
+		if v.prependNewLine {
 			fmt.Println("")
-			prependNewLine = false
+			v.prependNewLine = false
 		}
 
 		var first = len(lines) == 0
@@ -225,7 +224,7 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 	}
 
 	if len(lines) > 0 {
-		prependNewLine = true
+		v.prependNewLine = true
 	}
 }
 
