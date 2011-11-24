@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	goopt "github.com/droundy/goopt"
-	"./highlight"
+	colors "github.com/wsxiaoys/colors"
 	"./ignore"
 	"os"
 	"path/filepath"
@@ -210,7 +210,7 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 				fmt.Printf("Binary file %s matches\n", fn)
 				break
 			} else {
-				highlight.Printf("green", "%s\n", fn)
+				colors.Printf("@g%s\n", fn)
 			}
 		}
 
@@ -218,8 +218,12 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 			return
 		}
 
-		highlight.Printf("bold yellow", "%d:", info.num)
-		highlight.Reprintlnf("on_yellow", v.pattern, "%s", info.line)
+		colors.Printf("@!@y%d:", info.num)
+		coloredLine := v.pattern.ReplaceAllStringFunc(string(info.line),
+			func(wrap string) string {
+			return colors.Sprintf("@Y%s", wrap)
+		})
+		fmt.Printf("%s\n", coloredLine)
 	}
 
 	if len(lines) > 0 {
@@ -255,7 +259,7 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 		}
 		if !changed {
 			changed = true
-			highlight.Printf("green", "%s", fn)
+			colors.Printf("@g%s", fn)
 		}
 
 		changenum += 1
@@ -263,7 +267,7 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 	})
 
 	if changenum > 0 {
-		highlight.Printf("bold yellow", " - %d change%s made\n",
+		colors.Printf("@!@y - %d change%s made\n",
 			changenum, getSuffix(changenum))
 	}
 
