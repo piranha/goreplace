@@ -1,15 +1,15 @@
 package main
 
 import (
-	"os"
-	"path/filepath"
-	"fmt"
-	"regexp"
 	"bytes"
 	"errors"
+	"fmt"
 	goopt "github.com/droundy/goopt"
 	"./highlight"
 	"./ignore"
+	"os"
+	"path/filepath"
+	"regexp"
 )
 
 var Author = "Alexander Solovyov"
@@ -88,14 +88,14 @@ func searchFiles(pattern *regexp.Regexp, ignorer ignore.Ignorer) {
 	}
 }
 
-func walkFunc(v *GRVisitor, errors chan <- error) filepath.WalkFunc {
-	return func (fn string, fi *os.FileInfo, err error) error {
+func walkFunc(v *GRVisitor, errors chan<- error) filepath.WalkFunc {
+	return func(fn string, fi os.FileInfo, err error) error {
 		if err != nil {
 			errors <- err
 			return nil
 		}
 
-		if fi.IsDirectory() {
+		if fi.IsDir() {
 			if !v.VisitDir(fn, fi) {
 				return filepath.SkipDir
 			}
@@ -114,21 +114,21 @@ type GRVisitor struct {
 	prependNewLine bool
 }
 
-func (v *GRVisitor) VisitDir(fn string, fi *os.FileInfo) bool {
-	return !v.ignorer.Ignore(fi.Name, true)
+func (v *GRVisitor) VisitDir(fn string, fi os.FileInfo) bool {
+	return !v.ignorer.Ignore(fi.Name(), true)
 }
 
-func (v *GRVisitor) VisitFile(fn string, fi *os.FileInfo) {
-	if !fi.IsRegular() {
+func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
+	if fi.IsDir() {
 		return
 	}
 
-	if fi.Size >= 1024*1024*10 {
-		fmt.Fprintf(os.Stderr, "Skipping %s, too big: %d\n", fn, fi.Size)
+	if fi.Size() >= 1024*1024*10 {
+		fmt.Fprintf(os.Stderr, "Skipping %s, too big: %d\n", fn, fi.Size())
 		return
 	}
 
-	if fi.Size == 0 {
+	if fi.Size() == 0 {
 		return
 	}
 
@@ -149,15 +149,14 @@ func (v *GRVisitor) VisitFile(fn string, fi *os.FileInfo) {
 		f.Seek(0, 0)
 		n, err := f.Write(result)
 		errhandle(err, true, "Error writing replacement in file %s", fn)
-		if int64(n) < fi.Size {
+		if int64(n) < fi.Size() {
 			err := f.Truncate(int64(n))
 			errhandle(err, true, "Error truncating file to size %d", f)
 		}
 	}
 }
 
-func (v *GRVisitor) GetFileAndContent(fn string, fi *os.FileInfo) (
-	f *os.File, content []byte) {
+func (v *GRVisitor) GetFileAndContent(fn string, fi os.FileInfo) (f *os.File, content []byte) {
 	var err error
 	var msg string
 
@@ -174,12 +173,12 @@ func (v *GRVisitor) GetFileAndContent(fn string, fi *os.FileInfo) (
 		return
 	}
 
-	content = make([]byte, fi.Size)
+	content = make([]byte, fi.Size())
 	n, err := f.Read(content)
 	errhandle(err, true, "can't read file %s", fn)
-	if int64(n) != fi.Size {
+	if int64(n) != fi.Size() {
 		panic(fmt.Sprintf("Not whole file was read, only %d from %d",
-			n, fi.Size))
+			n, fi.Size()))
 	}
 
 	return
@@ -235,8 +234,7 @@ func getSuffix(num int) string {
 	return ""
 }
 
-func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (
-	changed bool, result []byte) {
+func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, result []byte) {
 	changed = false
 	binary := false
 	changenum := 0
