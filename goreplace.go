@@ -97,8 +97,7 @@ func walkFunc(v *GRVisitor, errors chan<- error) filepath.WalkFunc {
 
 		// NOTE: if a directory is a symlink, filepath.Walk won't recurse inside
 		if fi.Mode() & os.ModeSymlink != 0 {
-			fi, err = os.Stat(fn)
-			if err != nil {
+			if fi, err = os.Stat(fn); err != nil {
 				errors <- err
 				return nil
 			}
