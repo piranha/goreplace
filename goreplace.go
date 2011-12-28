@@ -1,3 +1,6 @@
+// (c) 2011 Alexander Solovyov
+// under terms of ISC license
+
 package main
 
 import (
