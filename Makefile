@@ -2,9 +2,9 @@ include $(GOROOT)/src/Make.inc
 
 .SUFFIXES: .go .$O
 
-TARG=gr
-MAIN=goreplace
-GOFILES=ignore.go goreplace.go
+TARG = gr
+MAIN = goreplace
+GOFILES = ignore.go goreplace.go
 
 all: $(TARG)
 
@@ -24,5 +24,5 @@ prod: $(OBJS)
 clean:
 	rm -f $(OBJS) $(TARG)
 
-.go.$O:
+%.$O: %.go
 	$(GC) $<
