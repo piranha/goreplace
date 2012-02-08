@@ -8,6 +8,19 @@ goreplace is a simple utility which can be used as replacement for grep + sed
 combination in one of most popular cases - find files, which contain something,
 possibly replace this with something else.
 
+Installation
+------------
+
+It's suited to be installed via ``go`` tool, so just do usual thing::
+
+  go get github.com/piranha/goreplace
+
+And you should be done. You'll have ``$GOPATH`` set to some directory for this
+to work (it'll put sources and generated binary there).
+
+I prefer name ``gr`` to ``goreplace``, so I link ``gr`` somewhere in my path
+(usually in ``~/bin``) to ``$GOPATH/bin/goreplace``.
+
 Usage
 -----
 

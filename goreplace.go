@@ -9,7 +9,6 @@ import (
 	"fmt"
 	goopt "github.com/droundy/goopt"
 	colors "github.com/wsxiaoys/colors"
-	"./ignore"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -44,7 +43,7 @@ func main() {
 	}
 
 	cwd, _ := os.Getwd()
-	ignorer := ignore.New(cwd)
+	ignorer := NewIgnorer(cwd)
 	goopt.Summary += fmt.Sprintf("\n%s", ignorer)
 
 	goopt.Parse(nil)
@@ -67,17 +66,18 @@ func main() {
 	searchFiles(pattern, ignorer)
 }
 
-func errhandle(err error, exit bool, moreinfo string, a ...interface{}) {
+func errhandle(err error, exit bool, moreinfo string, a ...interface{}) bool {
 	if err == nil {
-		return
+		return false
 	}
 	fmt.Fprintf(os.Stderr, "ERR %s\n%s\n", err, fmt.Sprintf(moreinfo, a...))
 	if exit {
 		os.Exit(1)
 	}
+	return true
 }
 
-func searchFiles(pattern *regexp.Regexp, ignorer ignore.Ignorer) {
+func searchFiles(pattern *regexp.Regexp, ignorer Ignorer) {
 	v := &GRVisitor{pattern, ignorer, false}
 
 	errors := make(chan error, 64)
@@ -120,7 +120,7 @@ func walkFunc(v *GRVisitor, errors chan<- error) filepath.WalkFunc {
 
 type GRVisitor struct {
 	pattern *regexp.Regexp
-	ignorer ignore.Ignorer
+	ignorer Ignorer
 	// Used to prevent sparse newline at the end of output
 	prependNewLine bool
 }

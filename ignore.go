@@ -1,7 +1,7 @@
 // (c) 2011 Alexander Solovyov
 // under terms of ISC license
 
-package ignore
+package main
 
 import (
 	"os"
@@ -18,20 +18,7 @@ type Ignorer interface {
 	Append(pats []string)
 }
 
-func errhandle(err error, exit bool, moreinfo string,
-	a ...interface{}) bool {
-	if err == nil {
-		return false
-	}
-	fmt.Fprintf(os.Stderr, "ERR %s\n%s\n", err,
-		fmt.Sprintf(moreinfo, a...))
-	if exit {
-		os.Exit(1)
-	}
-	return true
-}
-
-func New(wd string) Ignorer {
+func NewIgnorer(wd string) Ignorer {
 	path := wd
 	if path[0] != '/' {
 		panic("Given path should be anchored at /")
