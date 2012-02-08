@@ -15,8 +15,9 @@ It's suited to be installed via ``go`` tool, so just do usual thing::
 
   go get github.com/piranha/goreplace
 
-And you should be done. You'll have ``$GOPATH`` set to some directory for this
-to work (it'll put sources and generated binary there).
+And you should be done. You have to have ``$GOPATH`` set for this to work
+(``go`` will put sources and generated binary there). Add ``-u`` flag there to
+update your goreplace.
 
 I prefer name ``gr`` to ``goreplace``, so I link ``gr`` somewhere in my path
 (usually in ``~/bin``) to ``$GOPATH/bin/goreplace``.
