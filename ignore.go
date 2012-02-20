@@ -18,6 +18,14 @@ type Ignorer interface {
 	Append(pats []string)
 }
 
+func dirExists(path string) bool {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return fi.IsDir()
+}
+
 func NewIgnorer(wd string) Ignorer {
 	path := wd
 	if path[0] != '/' {
@@ -29,15 +37,18 @@ func NewIgnorer(wd string) Ignorer {
 			break
 		}
 
-		f, err := os.Open(filepath.Join(path, ".hgignore"))
-		if err == nil {
-			return NewHgIgnorer(wd, f)
+		if dirExists(filepath.Join(path, ".hg")) {
+			return NewHgIgnorer(wd, filepath.Join(path, ".hgignore"))
 		}
 
-		f, err = os.Open(filepath.Join(path, ".gitignore"))
-		if err == nil {
-			return NewGitIgnorer(wd, f)
+		if dirExists(filepath.Join(path, ".git")) {
+			return NewGitIgnorer(wd, filepath.Join(path, ".gitignore"))
 		}
+
+		// f, err = os.Open(filepath.Join(path, ".git"))
+		// if err == nil {
+		// 	return NewGitIgnorer(wd, f)
+		// }
 
 		path = filepath.Clean(filepath.Join(path, ".."))
 	}
@@ -102,7 +113,7 @@ func (i *GeneralIgnorer) String() string {
 // read .hgignore and ignore patterns from there
 type HgIgnorer struct {
 	prefix string
-	f      *os.File
+	fp     string
 	res    []*regexp.Regexp
 	globs  []string
 }
@@ -113,13 +124,28 @@ var hgSyntaxes = map[string]bool{
 	"glob":   false,
 }
 
-func NewHgIgnorer(wd string, f *os.File) *HgIgnorer {
-	reader := bufio.NewReader(f)
-	isRe := true
+func NewHgIgnorer(wd string, fp string) *HgIgnorer {
+	var prefix string
+	basepath := filepath.Clean(filepath.Join(fp, ".."))
+	if strings.HasPrefix(wd, basepath) {
+		prefix = wd[len(basepath):]
+		if len(prefix) > 0 && prefix[0] == '/' {
+			prefix = prefix[1:]
+		}
+	} else {
+		prefix = ""
+	}
 
 	res := []*regexp.Regexp{}
 	globs := []string{}
 
+	f, err := os.Open(fp)
+	if err != nil {
+		return &HgIgnorer{prefix, fp, res, globs}
+	}
+
+	reader := bufio.NewReader(f)
+	isRe := true
 	for {
 		line, _, err := reader.ReadLine()
 		if err != nil {
@@ -162,18 +188,7 @@ func NewHgIgnorer(wd string, f *os.File) *HgIgnorer {
 			globs = append(globs, pat)
 		}
 	}
-
-	var prefix string
-	basepath := filepath.Clean(filepath.Join(f.Name(), ".."))
-	if strings.HasPrefix(wd, basepath) {
-		prefix = wd[len(basepath):]
-		if len(prefix) > 0 && prefix[0] == '/' {
-			prefix = prefix[1:]
-		}
-	} else {
-		prefix = ""
-	}
-	return &HgIgnorer{prefix, f, res, globs}
+	return &HgIgnorer{prefix, fp, res, globs}
 }
 
 func (i *HgIgnorer) Ignore(fn string, isdir bool) bool {
@@ -212,7 +227,7 @@ func (i *HgIgnorer) Append(pats []string) {
 }
 
 func (i *HgIgnorer) String() string {
-	desc := fmt.Sprintf("Ignoring patterns from %s:\n", i.f.Name())
+	desc := fmt.Sprintf("Ignoring patterns from %s:\n", i.fp)
 	if len(i.res) > 0 {
 		desc += "\tregular expressions: "
 		for _, x := range i.res {
@@ -231,16 +246,16 @@ func (i *HgIgnorer) String() string {
 // read .gitignore and ignore patterns from there
 type GitIgnorer struct {
 	basepath string
-	prefix  string
-	f       *os.File
-	globs   []string
-	dirs    []string
-	res     []*regexp.Regexp
+	prefix   string
+	fp       string
+	globs    []string
+	dirs     []string
+	res      []*regexp.Regexp
 }
 
-func NewGitIgnorer(wd string, f *os.File) *GitIgnorer {
+func NewGitIgnorer(wd string, fp string) *GitIgnorer {
 	var prefix string
-	basepath := filepath.Clean(filepath.Join(f.Name(), ".."))
+	basepath := filepath.Clean(filepath.Join(fp, ".."))
 	if strings.HasPrefix(wd, basepath) {
 		prefix = wd[len(basepath):]
 		if len(prefix) > 0 && prefix[0] == '/' {
@@ -252,6 +267,11 @@ func NewGitIgnorer(wd string, f *os.File) *GitIgnorer {
 
 	globs := []string{}
 	dirs := []string{}
+
+	f, err := os.Open(fp)
+	if err != nil {
+		return &GitIgnorer{basepath, prefix, fp, globs, dirs, []*regexp.Regexp{}}
+	}
 
 	reader := bufio.NewReader(f)
 	for {
@@ -282,7 +302,7 @@ func NewGitIgnorer(wd string, f *os.File) *GitIgnorer {
 		}
 	}
 
-	return &GitIgnorer{basepath, prefix, f, globs, dirs, []*regexp.Regexp{}}
+	return &GitIgnorer{basepath, prefix, fp, globs, dirs, []*regexp.Regexp{}}
 }
 
 func (i *GitIgnorer) Ignore(fn string, isdir bool) bool {
@@ -325,7 +345,7 @@ func (i *GitIgnorer) Append(pats []string) {
 }
 
 func (i *GitIgnorer) String() string {
-	desc := fmt.Sprintf("Ignoring patterns from %s:\n", i.f.Name())
+	desc := fmt.Sprintf("Ignoring patterns from %s:\n", i.fp)
 	if len(i.globs) > 0 {
 		desc += "\tglobs: "
 		for _, x := range i.globs {

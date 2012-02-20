@@ -49,7 +49,7 @@ func main() {
 	goopt.Parse(nil)
 
 	if *showVersion {
-		println("goreplace " + goopt.Version)
+		fmt.Printf("goreplace %s\n", goopt.Version)
 		return
 	}
 
