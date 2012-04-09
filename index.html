@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>goreplace by piranha</title>
+    
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>goreplace</h1>
+        <p>search and replace</p>
+        <p class="view"><a href="https://github.com/piranha/goreplace">View the Project on GitHub <small>piranha/goreplace</small></a></p>
+        <ul>
+          <li><a href="https://github.com/piranha/goreplace/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/piranha/goreplace/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/piranha/goreplace">Fork On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>goreplace</h1>
+
+<p>goreplace is a simple utility which can be used as replacement for grep + sed
+combination in one of most popular cases - find files, which contain something,
+possibly replace this with something else.</p>
+
+<h2>Installation</h2>
+
+<p>It's suited to be installed via <code>go</code> tool, so just do usual thing:</p>
+
+<pre><code>go get github.com/piranha/goreplace
+</code></pre>
+
+<p>And you should be done. You have to have <code>$GOPATH</code> set for this to work
+(<code>go</code> will put sources and generated binary there). Add <code>-u</code> flag there to
+update your goreplace.</p>
+
+<p>I prefer name <code>gr</code> to <code>goreplace</code>, so I link <code>gr</code> somewhere in my path
+(usually in <code>~/bin</code>) to <code>$GOPATH/bin/goreplace</code>.</p>
+
+<h2>Usage</h2>
+
+<p>Usage is pretty simple, you can just run <code>gr</code> to see help on
+options. Basically you just supply regexp (or a simple string - it's a regexp
+always as well) as an argument and goreplace will search for it in all files
+starting from the current directory, just like this:</p>
+
+<pre><code>gr somestring
+</code></pre>
+
+<p>Some directories and files can be ignored by default (<code>gr</code> is looking for your
+<code>.hgignore</code>/<code>.gitignore</code> in parent directories), just run <code>gr</code> without any
+arguments to see help message - it contains information about them.</p>
+
+<p>If you need to replace found strings with something, just pass <code>-r
+replacement</code> option and they will be replaced in-place. No backups are made
+(not that you need them, right? You're using version control, aren't you?).
+Unfortunately only plain strings are supported as replacement, no regexp
+submatch support yet (planned, though).</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/piranha">piranha</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
