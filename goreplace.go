@@ -15,11 +15,13 @@ import (
 )
 
 var Author = "Alexander Solovyov"
-var Version = "0.3.4"
+var Version = "0.3.6"
 var Summary = "gr [OPTS] string-to-search\n"
 
 var byteNewLine []byte = []byte("\n")
 
+var ignoreCase = goopt.Flag([]string{"-i", "--ignore-case"}, []string{},
+    "ignore pattern case", "")
 var onlyName = goopt.Flag([]string{"-n", "--filename"}, []string{},
 	"print only filenames", "")
 var ignoreFiles = goopt.Strings([]string{"-x", "--exclude"}, "RE",
@@ -60,8 +62,13 @@ func main() {
 		return
 	}
 
-	pattern, err := regexp.Compile(goopt.Args[0])
-	errhandle(err, true, "can't compile regexp %s", goopt.Args[0])
+    arg := goopt.Args[0]
+    if *ignoreCase {
+        arg = "(?i:" + arg + ")"
+    }
+
+    pattern, err := regexp.Compile(arg)
+    errhandle(err, true, "")
 
 	searchFiles(pattern, ignorer)
 }
@@ -70,7 +77,7 @@ func errhandle(err error, exit bool, moreinfo string, a ...interface{}) bool {
 	if err == nil {
 		return false
 	}
-	fmt.Fprintf(os.Stderr, "ERR %s\n%s\n", err, fmt.Sprintf(moreinfo, a...))
+	fmt.Fprintf(os.Stderr, "%s\n%s\n", err, fmt.Sprintf(moreinfo, a...))
 	if exit {
 		os.Exit(1)
 	}
@@ -86,7 +93,7 @@ func searchFiles(pattern *regexp.Regexp, ignorer Ignorer) {
 
 	select {
 	case err := <-errors:
-		errhandle(err, true, "some error")
+		errhandle(err, true, "")
 	default:
 	}
 }
@@ -213,7 +220,7 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 			v.prependNewLine = false
 		}
 
-		var first = len(lines) == 0
+		first := len(lines) == 0
 		lines = append(lines, info.num)
 
 		if first {
