@@ -70,6 +70,10 @@ func main() {
     pattern, err := regexp.Compile(arg)
     errhandle(err, true, "")
 
+	if pattern.Match([]byte("")) {
+		errhandle(errors.New("Your pattern matches empty string"), true, "")
+	}
+
 	searchFiles(pattern, ignorer)
 }
 
