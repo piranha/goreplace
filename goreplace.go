@@ -14,26 +14,28 @@ import (
 	"regexp"
 )
 
-var Author = "Alexander Solovyov"
-var Version = "0.3.6"
-var Summary = "gr [OPTS] string-to-search\n"
+var (
+	Author  = "Alexander Solovyov"
+	Version = "0.3.6"
+	Summary = "gr [OPTS] string-to-search\n"
 
-var byteNewLine []byte = []byte("\n")
+	byteNewLine []byte = []byte("\n")
 
-var ignoreCase = goopt.Flag([]string{"-i", "--ignore-case"}, []string{},
-    "ignore pattern case", "")
-var onlyName = goopt.Flag([]string{"-n", "--filename"}, []string{},
-	"print only filenames", "")
-var ignoreFiles = goopt.Strings([]string{"-x", "--exclude"}, "RE",
-	"exclude files that match the regexp from search")
-var singleline = goopt.Flag([]string{"-s", "--singleline"}, []string{},
-	"match on a single line (^/$ will be beginning/end of line)", "")
-var replace = goopt.String([]string{"-r", "--replace"}, "",
-	"replace found substrings with this string")
-var force = goopt.Flag([]string{"--force"}, []string{},
-	"force replacement in binary files", "")
-var showVersion = goopt.Flag([]string{"-v", "--version"}, []string{},
-	"show version and exit", "")
+	ignoreCase = goopt.Flag([]string{"-i", "--ignore-case"}, []string{},
+		"ignore pattern case", "")
+	onlyName = goopt.Flag([]string{"-n", "--filename"}, []string{},
+		"print only filenames", "")
+	ignoreFiles = goopt.Strings([]string{"-x", "--exclude"}, "RE",
+		"exclude files that match the regexp from search")
+	singleline = goopt.Flag([]string{"-s", "--singleline"}, []string{},
+		"match on a single line (^/$ will be beginning/end of line)", "")
+	replace = goopt.String([]string{"-r", "--replace"}, "",
+		"replace found substrings with this string")
+	force = goopt.Flag([]string{"--force"}, []string{},
+		"force replacement in binary files", "")
+	showVersion = goopt.Flag([]string{"-v", "--version"}, []string{},
+		"show version and exit", "")
+)
 
 func main() {
 	goopt.Author = Author
@@ -62,13 +64,13 @@ func main() {
 		return
 	}
 
-    arg := goopt.Args[0]
-    if *ignoreCase {
-        arg = "(?i:" + arg + ")"
-    }
+	arg := goopt.Args[0]
+	if *ignoreCase {
+		arg = "(?i:" + arg + ")"
+	}
 
-    pattern, err := regexp.Compile(arg)
-    errhandle(err, true, "")
+	pattern, err := regexp.Compile(arg)
+	errhandle(err, true, "")
 
 	if pattern.Match([]byte("")) {
 		errhandle(errors.New("Your pattern matches empty string"), true, "")
@@ -110,7 +112,7 @@ func walkFunc(v *GRVisitor, errors chan<- error) filepath.WalkFunc {
 		}
 
 		// NOTE: if a directory is a symlink, filepath.Walk won't recurse inside
-		if fi.Mode() & os.ModeSymlink != 0 {
+		if fi.Mode()&os.ModeSymlink != 0 {
 			if fi, err = os.Stat(fn); err != nil {
 				errors <- err
 				return nil
@@ -243,8 +245,8 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 		colors.Printf("@!@y%d:", info.num)
 		coloredLine := v.pattern.ReplaceAllStringFunc(string(info.line),
 			func(wrap string) string {
-			return colors.Sprintf("@Y%s", wrap)
-		})
+				return colors.Sprintf("@Y%s", wrap)
+			})
 		fmt.Printf("%s\n", coloredLine)
 	}
 
@@ -301,7 +303,6 @@ type LineInfo struct {
 	line []byte
 }
 
-// will return slice of [linenum, line] slices
 func (v *GRVisitor) FindAllIndex(content []byte) (res []*LineInfo) {
 	linenum := 1
 
@@ -344,7 +345,7 @@ func beginend(s []byte, start int, finish int) (begin int, end int) {
 		}
 	}
 
-	// -1 to check if current location is not end of string
+	// -1 to check if current location is the end of a string
 	for i := finish - 1; i < len(s); i++ {
 		if s[i] == byteNewLine[0] {
 			end = i
