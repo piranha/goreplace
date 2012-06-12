@@ -325,6 +325,12 @@ func (i *GitIgnorer) Ignore(fn string, isdir bool) bool {
 		}
 	}
 
+	for _, pat := range i.res {
+		if pat.Match([]byte(fn)) {
+			return true
+		}
+	}
+
 	for _, dir := range i.dirs {
 		if strings.Contains(dirpath, dir) {
 			return true
@@ -354,6 +360,14 @@ func (i *GitIgnorer) String() string {
 			} else {
 				desc += x + " "
 			}
+		}
+		desc += "\n"
+	}
+
+	if len(i.res) > 0 {
+		desc += "\tregular expressions: "
+		for _, x := range i.res {
+			desc += x.String() + " "
 		}
 		desc += "\n"
 	}
