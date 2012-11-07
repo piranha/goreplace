@@ -26,13 +26,13 @@ func dirExists(path string) bool {
 	return fi.IsDir()
 }
 
-func NewIgnorer(wd string) Ignorer {
+func NewIgnorer(wd string, noIgnores bool) Ignorer {
 	path := wd
 	if path[0] != '/' {
 		panic("Given path should be anchored at /")
 	}
 
-	for {
+	for !noIgnores {
 		if path == "/" {
 			break
 		}

@@ -16,7 +16,7 @@ import (
 
 var (
 	Author  = "Alexander Solovyov"
-	Version = "0.3.7"
+	Version = "0.3.8"
 	Summary = "gr [OPTS] string-to-search\n"
 
 	byteNewLine []byte = []byte("\n")
@@ -35,6 +35,8 @@ var (
 		"force replacement in binary files", "")
 	showVersion = goopt.Flag([]string{"-v", "--version"}, []string{},
 		"show version and exit", "")
+	noIgnoresGlobal = goopt.Flag([]string{"-I", "--no-autoignore"}, []string{},
+		"do not read .git/.hgignore files", "")
 )
 
 func main() {
@@ -46,11 +48,19 @@ func main() {
 			goopt.Summary + "\n" + goopt.Help()
 	}
 
+	var noIgnores bool
+	for _, item := range os.Args[1:] {
+		if item == "-I" || item == "--no-autoignore" {
+			noIgnores = true
+		}
+	}
+
 	cwd, _ := os.Getwd()
-	ignorer := NewIgnorer(cwd)
+	ignorer := NewIgnorer(cwd, noIgnores)
 	goopt.Summary += fmt.Sprintf("\n%s", ignorer)
 
 	goopt.Parse(nil)
+
 
 	if *showVersion {
 		fmt.Printf("goreplace %s\n", goopt.Version)
@@ -99,7 +109,7 @@ func searchFiles(pattern *regexp.Regexp, ignorer Ignorer) {
 
 	select {
 	case err := <-errors:
-		errhandle(err, true, "")
+		errhandle(err, false, "")
 	default:
 	}
 }
