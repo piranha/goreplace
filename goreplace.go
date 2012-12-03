@@ -63,7 +63,6 @@ func main() {
 
 	goopt.Parse(nil)
 
-
 	if *showVersion {
 		fmt.Printf("goreplace %s\n", goopt.Version)
 		return
@@ -390,19 +389,19 @@ func (il IntList) Contains(i int) bool {
 
 var toEscape = map[rune]bool{
 	'\\': true,
-	'.': true,
-	'(': true,
-	')': true,
-	'[': true,
-	']': true,
-	'{': true,
-	'}': true,
-	'+': true,
-	'*': true,
-	'?': true,
-	'|': true,
-	'^': true,
-	'$': true,
+	'.':  true,
+	'(':  true,
+	')':  true,
+	'[':  true,
+	']':  true,
+	'{':  true,
+	'}':  true,
+	'+':  true,
+	'*':  true,
+	'?':  true,
+	'|':  true,
+	'^':  true,
+	'$':  true,
 }
 
 func escapeRegexp(arg string) string {

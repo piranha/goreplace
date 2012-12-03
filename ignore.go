@@ -4,12 +4,12 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
-	"bufio"
-	"fmt"
 	"regexp"
-	"bytes"
 	"strings"
 )
 
