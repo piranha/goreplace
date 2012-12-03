@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 	goopt "github.com/droundy/goopt"
-	colors "github.com/wsxiaoys/colors"
+	color "github.com/wsxiaoys/terminal/color"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -29,6 +29,8 @@ var (
 		"exclude files that match the regexp from search")
 	singleline = goopt.Flag([]string{"-s", "--singleline"}, []string{},
 		"match on a single line (^/$ will be beginning/end of line)", "")
+	plaintext = goopt.Flag([]string{"-p", "--plain"}, []string{},
+		"search plain text", "")
 	replace = goopt.String([]string{"-r", "--replace"}, "",
 		"replace found substrings with this string")
 	force = goopt.Flag([]string{"--force"}, []string{},
@@ -75,6 +77,9 @@ func main() {
 	}
 
 	arg := goopt.Args[0]
+	if *plaintext {
+		arg = escapeRegex(arg)
+	}
 	if *ignoreCase {
 		arg = "(?i:" + arg + ")"
 	}
@@ -244,7 +249,7 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 				fmt.Printf("Binary file %s matches\n", fn)
 				break
 			} else {
-				colors.Printf("@g%s\n", fn)
+				color.Printf("@g%s\n", fn)
 			}
 		}
 
@@ -252,10 +257,10 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 			return
 		}
 
-		colors.Printf("@!@y%d:", info.num)
+		color.Printf("@!@y%d:", info.num)
 		coloredLine := v.pattern.ReplaceAllStringFunc(string(info.line),
 			func(wrap string) string {
-				return colors.Sprintf("@Y%s", wrap)
+				return color.Sprintf("@Y%s", wrap)
 			})
 		fmt.Printf("%s\n", coloredLine)
 	}
@@ -281,6 +286,10 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 		panic("Can't handle singleline replacements yet")
 	}
 
+	if *plaintext {
+		panic("Can't handle plain text replacements yet")
+	}
+
 	if bytes.IndexByte(content, 0) != -1 {
 		binary = true
 	}
@@ -293,7 +302,7 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 		}
 		if !changed {
 			changed = true
-			colors.Printf("@g%s", fn)
+			color.Printf("@g%s", fn)
 		}
 
 		changenum += 1
@@ -301,7 +310,7 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 	})
 
 	if changenum > 0 {
-		colors.Printf("@!@y - %d change%s made\n",
+		color.Printf("@!@y - %d change%s made\n",
 			changenum, getSuffix(changenum))
 	}
 
@@ -314,30 +323,32 @@ type LineInfo struct {
 }
 
 func (v *GRVisitor) FindAllIndex(content []byte) (res []*LineInfo) {
-	linenum := 1
-
 	if *singleline {
-		begin, end := 0, 0
-		for i := 0; i < len(content); i++ {
-			if content[i] == '\n' {
-				end = i
-				line := content[begin:end]
-				if v.pattern.Match(line) {
-					res = append(res, &LineInfo{linenum, line})
-				}
-				linenum += 1
-				begin = end + 1
-			}
-		}
-		return res
+		return v.singlelineFindAllIndex(content)
 	}
 
-	last := 0
+	linenum, last := 1, 0
 	for _, bounds := range v.pattern.FindAllIndex(content, -1) {
 		linenum += bytes.Count(content[last:bounds[0]], byteNewLine)
 		last = bounds[0]
 		begin, end := beginend(content, bounds[0], bounds[1])
 		res = append(res, &LineInfo{linenum, content[begin:end]})
+	}
+	return res
+}
+
+func (v *GRVisitor) singlelineFindAllIndex(content []byte) (res []*LineInfo) {
+	linenum, begin, end := 1, 0, 0
+	for i := 0; i < len(content); i++ {
+		if content[i] == '\n' {
+			end = i
+			line := content[begin:end]
+			if v.pattern.Match(line) {
+				res = append(res, &LineInfo{linenum, line})
+			}
+			linenum += 1
+			begin = end + 1
+		}
 	}
 	return res
 }
@@ -375,4 +386,15 @@ func (il IntList) Contains(i int) bool {
 		}
 	}
 	return false
+}
+
+func escapeRegex(arg string) (escaped string){
+	toEscape := "\\.()[]{}+*?|^$"
+	for _, c := range arg {
+		if strings.ContainsRune(toEscape, c) {
+			escaped += "\\"
+		}
+		escaped += string(c)
+	}
+	return escaped
 }
