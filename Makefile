@@ -9,7 +9,7 @@ clean:
 
 upload: $(addprefix upload-,$(ALL)) $(ALL)
 
-upload-%:
+upload-%: %
 	github-upload.py $*
 
 gr-$(TAG)-%: $(SOURCE)

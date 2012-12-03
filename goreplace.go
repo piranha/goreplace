@@ -78,7 +78,7 @@ func main() {
 
 	arg := goopt.Args[0]
 	if *plaintext {
-		arg = escapeRegex(arg)
+		arg = escapeRegexp(arg)
 	}
 	if *ignoreCase {
 		arg = "(?i:" + arg + ")"
@@ -388,13 +388,31 @@ func (il IntList) Contains(i int) bool {
 	return false
 }
 
-func escapeRegex(arg string) (escaped string){
-	toEscape := "\\.()[]{}+*?|^$"
+var toEscape = map[rune]bool{
+	'\\': true,
+	'.': true,
+	'(': true,
+	')': true,
+	'[': true,
+	']': true,
+	'{': true,
+	'}': true,
+	'+': true,
+	'*': true,
+	'?': true,
+	'|': true,
+	'^': true,
+	'$': true,
+}
+
+func escapeRegexp(arg string) string {
+	var buffer bytes.Buffer
+
 	for _, c := range arg {
-		if strings.ContainsRune(toEscape, c) {
-			escaped += "\\"
+		if toEscape[c] {
+			buffer.WriteRune('\\')
 		}
-		escaped += string(c)
+		buffer.WriteRune(c)
 	}
-	return escaped
+	return buffer.String()
 }
