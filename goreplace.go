@@ -323,30 +323,32 @@ type LineInfo struct {
 }
 
 func (v *GRVisitor) FindAllIndex(content []byte) (res []*LineInfo) {
-	linenum := 1
-
 	if *singleline {
-		begin, end := 0, 0
-		for i := 0; i < len(content); i++ {
-			if content[i] == '\n' {
-				end = i
-				line := content[begin:end]
-				if v.pattern.Match(line) {
-					res = append(res, &LineInfo{linenum, line})
-				}
-				linenum += 1
-				begin = end + 1
-			}
-		}
-		return res
+		return v.singlelineFindAllIndex(content)
 	}
 
-	last := 0
+	linenum, last := 1, 0
 	for _, bounds := range v.pattern.FindAllIndex(content, -1) {
 		linenum += bytes.Count(content[last:bounds[0]], byteNewLine)
 		last = bounds[0]
 		begin, end := beginend(content, bounds[0], bounds[1])
 		res = append(res, &LineInfo{linenum, content[begin:end]})
+	}
+	return res
+}
+
+func (v *GRVisitor) singlelineFindAllIndex(content []byte) (res []*LineInfo) {
+	linenum, begin, end := 1, 0, 0
+	for i := 0; i < len(content); i++ {
+		if content[i] == '\n' {
+			end = i
+			line := content[begin:end]
+			if v.pattern.Match(line) {
+				res = append(res, &LineInfo{linenum, line})
+			}
+			linenum += 1
+			begin = end + 1
+		}
 	}
 	return res
 }
