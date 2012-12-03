@@ -29,6 +29,8 @@ var (
 		"exclude files that match the regexp from search")
 	singleline = goopt.Flag([]string{"-s", "--singleline"}, []string{},
 		"match on a single line (^/$ will be beginning/end of line)", "")
+	plaintext = goopt.Flag([]string{"-p", "--plain"}, []string{},
+		"search plain text", "")
 	replace = goopt.String([]string{"-r", "--replace"}, "",
 		"replace found substrings with this string")
 	force = goopt.Flag([]string{"--force"}, []string{},
@@ -75,6 +77,9 @@ func main() {
 	}
 
 	arg := goopt.Args[0]
+	if *plaintext {
+		arg = escapeRegex(arg)
+	}
 	if *ignoreCase {
 		arg = "(?i:" + arg + ")"
 	}
@@ -281,6 +286,10 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 		panic("Can't handle singleline replacements yet")
 	}
 
+	if *plaintext {
+		panic("Can't handle plain text replacements yet")
+	}
+
 	if bytes.IndexByte(content, 0) != -1 {
 		binary = true
 	}
@@ -375,4 +384,15 @@ func (il IntList) Contains(i int) bool {
 		}
 	}
 	return false
+}
+
+func escapeRegex(arg string) (escaped string){
+	toEscape := "\\.()[]{}+*?|^$"
+	for _, c := range arg {
+		if strings.ContainsRune(toEscape, c) {
+			escaped += "\\"
+		}
+		escaped += string(c)
+	}
+	return escaped
 }
