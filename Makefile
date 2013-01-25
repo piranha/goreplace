@@ -13,4 +13,4 @@ upload-%: %
 	github-upload.py $*
 
 gr-$(TAG)-%: $(SOURCE)
-	CGO_ENABLED=0 GOOS=$* GOARCH=amd64 go build -o $@ goreplace
+	CGO_ENABLED=0 GOOS=$* GOARCH=amd64 go build -o $@

@@ -4,6 +4,21 @@ goreplace is a simple utility which can be used as replacement for grep + sed
 combination in one of most popular cases - find files, which contain something,
 possibly replace this with something else.
 
+## Why
+
+Why do thing which is done by grep, find, and sed? Well, for one - I grew tired
+of typing long commands with pipes and ugly syntax. You want to search? Use
+grep. Replace? Use find and sed! Different syntax, context switching,
+etc. Switching from searching to replacing with goreplace is 'up one item in
+history and add a replacement string', much simpler!
+
+Besides, it's also faster than grep! Hard to believe, and it's a bit of cheating
+- but goreplace by default ignores everything you have in your `.hgignore` and
+`.gitignore` files, skipping binary builds and compiled byte-codes (which you
+usually don't want to touch anyway).
+
+This is my reason to use it - less latency doing task I'm doing often.
+
 ## Installation
 
 You can download latest release of goreplace from GitHub's [downloads]().
