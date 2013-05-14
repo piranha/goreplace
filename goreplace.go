@@ -5,7 +5,6 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"github.com/droundy/goopt"
 	"github.com/wsxiaoys/terminal/color"
@@ -16,7 +15,7 @@ import (
 
 var (
 	Author  = "Alexander Solovyov"
-	Version = "0.4.1"
+	Version = "0.4.2"
 	Summary = "gr [OPTS] string-to-search\n"
 
 	byteNewLine []byte = []byte("\n")
@@ -89,7 +88,7 @@ func main() {
 	errhandle(err, true, "")
 
 	if pattern.Match([]byte("")) {
-		errhandle(errors.New("Your pattern matches empty string"), true, "")
+		errhandle(fmt.Errorf("Your pattern matches empty string"), true, "")
 	}
 
 	searchFiles(pattern, ignorer)
@@ -217,8 +216,8 @@ func (v *GRVisitor) GetFileAndContent(fn string, fi os.FileInfo) (f *os.File, co
 	n, err := f.Read(content)
 	errhandle(err, true, "can't read file %s", fn)
 	if int64(n) != fi.Size() {
-		panic(fmt.Sprintf("Not whole file was read, only %d from %d",
-			n, fi.Size()))
+		errhandle(fmt.Errorf("Not whole file was read, only %d from %d",
+			n, fi.Size()), true, "")
 	}
 
 	return
@@ -284,11 +283,15 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 	changenum := 0
 
 	if *singleline {
-		panic("Can't handle singleline replacements yet")
+		errhandle(
+			fmt.Errorf("Can't handle singleline replacements yet"),
+			true, "")
 	}
 
 	if *plaintext {
-		panic("Can't handle plain text replacements yet")
+		errhandle(
+			fmt.Errorf("Can't handle plain text replacements yet"),
+			true, "")
 	}
 
 	if bytes.IndexByte(content, 0) != -1 {
@@ -298,7 +301,7 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 	result = v.pattern.ReplaceAllFunc(content, func(s []byte) []byte {
 		if binary && !*force {
 			errhandle(
-				errors.New("supply --force to force change of binary file"),
+				fmt.Errorf("supply --force to force change of binary file"),
 				false, "")
 		}
 		if !changed {

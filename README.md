@@ -23,9 +23,9 @@ This is my reason to use it - less latency doing task I'm doing often.
 
 Binary builds (64 bit):
 
- - [Linux](http://solovyov.net/files/gr-0.4.1-linux)
- - [OS X](http://solovyov.net/files/gr-0.4.1-osx)
- - [Windows](http://solovyov.net/files/gr-0.4.1-win.exe)
+ - [Linux](http://solovyov.net/files/gr-0.4.2-linux)
+ - [OS X](http://solovyov.net/files/gr-0.4.2-osx)
+ - [Windows](http://solovyov.net/files/gr-0.4.2-win.exe)
 
 You can download latest release of goreplace from GitHub's [downloads]().
 
@@ -43,9 +43,9 @@ in `~/bin`) to `$GOPATH/bin/goreplace`.
 ## Usage
 
 Usage is pretty simple, you can just run `gr` to see help on options. Basically
-you just supply regexp (or a simple string - it's a regexp always as well) as an
-argument and goreplace will search for it in all files starting from the current
-directory, just like this:
+you just supply a regexp (or a simple string - it's a regexp always as well) as
+an argument and goreplace will search for it in all files starting from the
+current directory, just like this:
 
     gr somestring
 
@@ -53,10 +53,10 @@ Some directories and files can be ignored by default (`gr` is looking for your
 `.hgignore`/`.gitignore` in parent directories), just run `gr` without any
 arguments to see help message - it contains information about them.
 
-If you need to replace found strings with something, just pass `-r replacement`
-option and they will be replaced in-place. No backups are made (not that you
-need them, right? You're using version control, aren't you?).  Unfortunately
-only plain strings are supported as replacement, no regexp submatch support yet
+If you need to replace what you've found, just pass `-r replacement` option and
+replaces will be performed in-place. No backups are made (not that you need
+them, right? You're using version control, aren't you?).  Unfortunately only
+plain strings are supported as replacement, no regexp submatch support yet
 (planned, though).
 
 [downloads]: https://github.com/piranha/goreplace/downloads
