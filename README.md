@@ -27,9 +27,7 @@ Binary builds (64 bit):
  - [OS X](http://solovyov.net/files/gr-0.4.2-osx)
  - [Windows](http://solovyov.net/files/gr-0.4.2-win.exe)
 
-You can download latest release of goreplace from GitHub's [downloads]().
-
-But it's suited to be installed via `go` tool, so you can do usual thing:
+It's suited to be installed via `go` tool, so you can do usual thing:
 
     go get github.com/piranha/goreplace
 
