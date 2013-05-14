@@ -7,8 +7,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	goopt "github.com/droundy/goopt"
-	color "github.com/wsxiaoys/terminal/color"
+	"github.com/droundy/goopt"
+	"github.com/wsxiaoys/terminal/color"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -16,7 +16,7 @@ import (
 
 var (
 	Author  = "Alexander Solovyov"
-	Version = "0.4"
+	Version = "0.4.1"
 	Summary = "gr [OPTS] string-to-search\n"
 
 	byteNewLine []byte = []byte("\n")
@@ -35,10 +35,12 @@ var (
 		"replace found substrings with this string")
 	force = goopt.Flag([]string{"--force"}, []string{},
 		"force replacement in binary files", "")
-	showVersion = goopt.Flag([]string{"-v", "--version"}, []string{},
+	showVersion = goopt.Flag([]string{"-V", "--version"}, []string{},
 		"show version and exit", "")
 	noIgnoresGlobal = goopt.Flag([]string{"-I", "--no-autoignore"}, []string{},
 		"do not read .git/.hgignore files", "")
+	verbose = goopt.Flag([]string{"-v", "--verbose"}, []string{},
+		"be verbose (show non-fatal errors, like unreadable files)", "")
 )
 
 func main() {
@@ -113,7 +115,7 @@ func searchFiles(pattern *regexp.Regexp, ignorer Ignorer) {
 
 	select {
 	case err := <-errors:
-		errhandle(err, false, "")
+		if (*verbose) { errhandle(err, false, "") }
 	default:
 	}
 }
@@ -207,7 +209,7 @@ func (v *GRVisitor) GetFileAndContent(fn string, fi os.FileInfo) (f *os.File, co
 	}
 
 	if err != nil {
-		errhandle(err, false, msg, fn)
+		if (*verbose) { errhandle(err, false, msg, fn) }
 		return
 	}
 
