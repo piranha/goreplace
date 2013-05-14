@@ -12,8 +12,8 @@ grep. Replace? Use find and sed! Different syntax, context switching,
 etc. Switching from searching to replacing with goreplace is 'up one item in
 history and add a replacement string', much simpler!
 
-Besides, it's also faster than grep! Hard to believe, and it's a bit of cheating
-- but goreplace by default ignores everything you have in your `.hgignore` and
+Besides, it's also faster than grep! Hard to believe, and it's a bit of cheating -
+but goreplace by default ignores everything you have in your `.hgignore` and
 `.gitignore` files, skipping binary builds and compiled byte-codes (which you
 usually don't want to touch anyway).
 
