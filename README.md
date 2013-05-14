@@ -21,6 +21,12 @@ This is my reason to use it - less latency doing task I'm doing often.
 
 ## Installation
 
+Binary builds (64 bit):
+
+ - [Linux](http://solovyov.net/files/gr-0.4.1-linux)
+ - [OS X](http://solovyov.net/files/gr-0.4.1-osx)
+ - [Windows](http://solovyov.net/files/gr-0.4.1-win.exe)
+
 You can download latest release of goreplace from GitHub's [downloads]().
 
 But it's suited to be installed via `go` tool, so you can do usual thing:
