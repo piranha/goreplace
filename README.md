@@ -1,8 +1,8 @@
-# goreplace
+# Go Replace
 
-goreplace is a simple utility which can be used as replacement for grep + sed
-combination in one of most popular cases - find files, which contain something,
-possibly replace this with something else. Main points:
+Go Replace (gr) is a simple utility which can be used as replacement for grep +
+sed combination in one of most popular cases - find files, which contain
+something, possibly replace this with something else. Main points:
 
  - Uses `.hgignore`/`.gitignore` to skip files
  - Skips binaries
@@ -15,11 +15,11 @@ possibly replace this with something else. Main points:
 Why do thing which is done by grep, find, and sed? Well, for one - I grew tired
 of typing long commands with pipes and ugly syntax. You want to search? Use
 grep. Replace? Use find and sed! Different syntax, context switching,
-etc. Switching from searching to replacing with goreplace is 'up one item in
+etc. Switching from searching to replacing with gr is 'up one item in
 history and add a replacement string', much simpler!
 
 Besides, it's also faster than grep! Hard to believe, and it's a bit of cheating -
-but goreplace by default ignores everything you have in your `.hgignore` and
+but gr by default ignores everything you have in your `.hgignore` and
 `.gitignore` files, skipping binary builds and compiled byte-codes (which you
 usually don't want to touch anyway).
 
@@ -39,7 +39,7 @@ It's suited to be installed via `go` tool, so you can do usual thing:
 
 And you should be done. You have to have `$GOPATH` set for this to work (`go`
 will put sources and generated binary there). Add `-u` flag there to update your
-goreplace.
+gr.
 
 I prefer name `gr` to `goreplace`, so I link `gr` somewhere in my path (usually
 in `~/bin`) to `$GOPATH/bin/goreplace`.
@@ -48,7 +48,7 @@ in `~/bin`) to `$GOPATH/bin/goreplace`.
 
 Usage is pretty simple, you can just run `gr` to see help on options. Basically
 you just supply a regexp (or a simple string - it's a regexp always as well) as
-an argument and goreplace will search for it in all files starting from the
+an argument and gr will search for it in all files starting from the
 current directory, just like this:
 
     gr somestring
@@ -64,5 +64,3 @@ And to replace:
 It's performed in place and no backups are made (not that you need them, right?
 You're using version control, aren't you?). Unfortunately only plain strings are
 supported as replacement, no regexp submatch support yet (planned, though).
-
-[downloads]: https://github.com/piranha/goreplace/downloads
