@@ -2,7 +2,13 @@
 
 goreplace is a simple utility which can be used as replacement for grep + sed
 combination in one of most popular cases - find files, which contain something,
-possibly replace this with something else.
+possibly replace this with something else. Main points:
+
+ - Uses `.hgignore`/`.gitignore` to skip files
+ - Skips binaries
+ - Familiar PCRE-like regexp syntax
+ - Can perform replacements
+ - Fast
 
 ## Why
 
@@ -51,10 +57,12 @@ Some directories and files can be ignored by default (`gr` is looking for your
 `.hgignore`/`.gitignore` in parent directories), just run `gr` without any
 arguments to see help message - it contains information about them.
 
-If you need to replace what you've found, just pass `-r replacement` option and
-replaces will be performed in-place. No backups are made (not that you need
-them, right? You're using version control, aren't you?).  Unfortunately only
-plain strings are supported as replacement, no regexp submatch support yet
-(planned, though).
+And to replace:
+
+    gr somestring -r replacement.
+
+It's performed in place and no backups are made (not that you need them, right?
+You're using version control, aren't you?). Unfortunately only plain strings are
+supported as replacement, no regexp submatch support yet (planned, though).
 
 [downloads]: https://github.com/piranha/goreplace/downloads
