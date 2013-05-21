@@ -1,6 +1,7 @@
 SOURCE = $(wildcard *.go)
 TAG = $(shell git describe --tags)
-ALL = $(foreach suffix,win.exe linux osx,gr-$(TAG)-$(suffix))
+SUFFIX = win.exe linux osx
+ALL = $(foreach suffix,$(SUFFIX),gr-$(TAG)-$(suffix)) $(foreach suffix,$(SUFFIX),gr-latest-$(suffix))
 
 all: $(ALL)
 
@@ -14,5 +15,12 @@ osx = darwin
 gr-$(TAG)-%: $(SOURCE)
 	CGO_ENABLED=0 GOOS=$(firstword $($*) $*) GOARCH=amd64 go build -o $@
 
+gr-latest-%: gr-$(TAG)-%
+	ln -sf $< $@
+
 upload: $(ALL)
-	rsync -P $(ALL) $(UPLOAD_PATH)
+ifndef UPLOAD_PATH
+	@echo "Define UPLOAD_PATH to determine where files should be uploaded"
+else
+	rsync -l -P $(ALL) $(UPLOAD_PATH)
+endif

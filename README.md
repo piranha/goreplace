@@ -23,9 +23,9 @@ This is my reason to use it - less latency doing task I'm doing often.
 
 Binary builds (64 bit):
 
- - [Linux](http://solovyov.net/files/gr-0.4.2-linux)
- - [OS X](http://solovyov.net/files/gr-0.4.2-osx)
- - [Windows](http://solovyov.net/files/gr-0.4.2-win.exe)
+ - [Linux](http://solovyov.net/files/gr-latest-linux)
+ - [OS X](http://solovyov.net/files/gr-latest-osx)
+ - [Windows](http://solovyov.net/files/gr-latest-win.exe)
 
 It's suited to be installed via `go` tool, so you can do usual thing:
 
