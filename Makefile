@@ -10,7 +10,7 @@ ALL = \
 all: $(ALL)
 
 clean:
-	rm $(ALL)
+	rm -f $(ALL)
 
 # os is determined as thus: if variable of suffix exists, it's taken, if not, then
 # suffix itself is taken

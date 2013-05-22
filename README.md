@@ -27,11 +27,14 @@ This is my reason to use it - less latency doing task I'm doing often.
 
 ## Installation
 
-Binary builds (64 bit):
+Binary builds:
 
- - [Linux](http://solovyov.net/files/gr-latest-linux)
- - [OS X](http://solovyov.net/files/gr-latest-osx)
- - [Windows](http://solovyov.net/files/gr-latest-win.exe)
+ - [Linux 64 bit](http://solovyov.net/files/gr-latest-64-linux)
+ - [Linux 32 bit](http://solovyov.net/files/gr-latest-32-linux)
+ - [OS X 64 bit](http://solovyov.net/files/gr-latest-64-osx)
+ - [OS X 32 bit](http://solovyov.net/files/gr-latest-32-osx)
+ - [Windows 64 bit](http://solovyov.net/files/gr-latest-64-win.exe)
+ - [Windows 32 bit](http://solovyov.net/files/gr-latest-32-win.exe)
 
 It's suited to be installed via `go` tool, so you can do usual thing:
 
