@@ -26,6 +26,8 @@ var (
 		"print only filenames", "")
 	ignoreFiles = goopt.Strings([]string{"-x", "--exclude"}, "RE",
 		"exclude files that match the regexp from search")
+	ignoreFilesNotMatching = goopt.Strings([]string{"-a", "--ignore-if-not-matching"}, "RE",
+		"exclude files that does not match the regexp from search")
 	singleline = goopt.Flag([]string{"-s", "--singleline"}, []string{},
 		"match on a single line (^/$ will be beginning/end of line)", "")
 	plaintext = goopt.Flag([]string{"-p", "--plain"}, []string{},
@@ -60,6 +62,7 @@ func main() {
 
 	cwd, _ := os.Getwd()
 	ignorer := NewIgnorer(cwd, noIgnores)
+	invIgnorer := NewGeneralIgnorer()
 	goopt.Summary += fmt.Sprintf("\n%s", ignorer)
 
 	goopt.Parse(nil)
@@ -70,6 +73,12 @@ func main() {
 	}
 
 	ignorer.Append(*ignoreFiles)
+
+	if len(*ignoreFilesNotMatching) > 0 {
+		invIgnorer.Append(*ignoreFilesNotMatching)
+	} else {
+		invIgnorer.Append([]string{".*"})
+	}
 
 	if len(goopt.Args) == 0 {
 		println(goopt.Usage())
@@ -91,7 +100,7 @@ func main() {
 		errhandle(fmt.Errorf("Your pattern matches empty string"), true, "")
 	}
 
-	searchFiles(pattern, ignorer)
+	searchFiles(pattern, ignorer, invIgnorer)
 }
 
 func errhandle(err error, exit bool, moreinfo string, a ...interface{}) bool {
@@ -105,8 +114,9 @@ func errhandle(err error, exit bool, moreinfo string, a ...interface{}) bool {
 	return true
 }
 
-func searchFiles(pattern *regexp.Regexp, ignorer Ignorer) {
-	v := &GRVisitor{pattern, ignorer, false}
+func searchFiles(pattern *regexp.Regexp, ignorer Ignorer,
+	invIgnorer Ignorer) {
+	v := &GRVisitor{pattern, ignorer, invIgnorer, false}
 
 	errors := make(chan error, 64)
 
@@ -147,8 +157,9 @@ func walkFunc(v *GRVisitor, errors chan<- error) filepath.WalkFunc {
 }
 
 type GRVisitor struct {
-	pattern *regexp.Regexp
-	ignorer Ignorer
+	pattern    *regexp.Regexp
+	ignorer    Ignorer
+	invIgnorer Ignorer
 	// Used to prevent sparse newline at the end of output
 	prependNewLine bool
 }
@@ -172,6 +183,10 @@ func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
 	}
 
 	if v.ignorer.Ignore(fn, false) {
+		return
+	}
+
+	if !v.invIgnorer.Ignore(fn, false) {
 		return
 	}
 
