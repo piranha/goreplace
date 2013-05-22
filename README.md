@@ -45,7 +45,13 @@ will put sources and generated binary there). Add `-u` flag there to update your
 gr.
 
 I prefer name `gr` to `goreplace`, so I link `gr` somewhere in my path (usually
-in `~/bin`) to `$GOPATH/bin/goreplace`.
+in `~/bin`) to `$GOPATH/bin/goreplace`. **NOTE**: if you use `oh-my-zsh`, it
+aliases `gr` to `git remote`, so you either should use another name (I propose
+`gp`) or remove `gr` alias:
+
+```
+mkdir -p ~/.oh-my-zsh/custom && echo "unalias gr" >> ~/.oh-my-zsh/custom/goreplace.zsh
+```
 
 ## Usage
 
