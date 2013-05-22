@@ -15,7 +15,7 @@ import (
 
 var (
 	Author  = "Alexander Solovyov"
-	Version = "0.4.2"
+	Version = "0.4.3"
 	Summary = "gr [OPTS] string-to-search\n"
 
 	byteNewLine []byte = []byte("\n")

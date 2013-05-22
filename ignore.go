@@ -28,12 +28,12 @@ func dirExists(path string) bool {
 
 func NewIgnorer(wd string, noIgnores bool) Ignorer {
 	path := wd
-	if path[0] != '/' {
-		panic("Given path should be anchored at /")
+	if !filepath.IsAbs(path) {
+		panic("Given path should be absolute")
 	}
 
 	for !noIgnores {
-		if path == "/" {
+		if filepath.Dir(path) == path {
 			break
 		}
 
