@@ -73,3 +73,18 @@ And to replace:
 It's performed in place and no backups are made (not that you need them, right?
 You're using version control, aren't you?). Unfortunately only plain strings are
 supported as replacement, no regexp submatch support yet (planned, though).
+
+## Changelog
+
+ - 0.5.0
+   - `-o`/`--only` option  - include only files specified (thanks to Vignesh
+     Sarma)
+   - fixed support of recursive `*` in `.gitignore`
+ - 0.4.3
+   - make ignorers cross-platform (fixed them for windows)
+ - 0.4.2
+   - cleanup error reporting
+ - 0.4.1
+   - hide non-fatal errors by default
+ - 0.4.0
+   - option for plain-text searching
