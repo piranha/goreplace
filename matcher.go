@@ -1,4 +1,4 @@
-// (c) 2011-2012 Alexander Solovyov
+// (c) 2011-2013 Alexander Solovyov
 // under terms of ISC license
 
 package main
@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"goreplace/fnmatch"
 )
 
 type Matcher interface {
@@ -317,7 +318,7 @@ func (i *GitMatcher) Match(fn string, isdir bool) bool {
 
 	for _, pat := range i.globs {
 		if strings.Index(pat, "/") != -1 {
-			if m, _ := filepath.Match(pat, fullpath); m {
+			if m, _ := fnmatch.Match(pat, fullpath); m {
 				return true
 			}
 		} else if m, _ := filepath.Match(pat, fn); m {

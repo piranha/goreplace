@@ -12,6 +12,10 @@ all: $(ALL)
 clean:
 	rm -f $(ALL)
 
+# cram is a python app, so 'easy_install/pip install cram' to run tests
+test:
+	cram tests/main.t
+
 # os is determined as thus: if variable of suffix exists, it's taken, if not, then
 # suffix itself is taken
 win.exe = windows
