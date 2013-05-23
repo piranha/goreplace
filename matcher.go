@@ -7,11 +7,11 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/piranha/goreplace/fnmatch"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
-	"github.com/piranha/goreplace/fnmatch"
 )
 
 type Matcher interface {

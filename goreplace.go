@@ -6,7 +6,7 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/droundy/goopt"
+	flags "github.com/piranha/go-flags"
 	"github.com/wsxiaoys/terminal/color"
 	"os"
 	"path/filepath"
@@ -15,42 +15,37 @@ import (
 
 var (
 	Author  = "Alexander Solovyov"
-	Version = "0.5.1"
-	Summary = "gr [OPTS] string-to-search\n"
+	Version = "0.5.2"
 
 	byteNewLine []byte = []byte("\n")
-
-	ignoreCase = goopt.Flag([]string{"-i", "--ignore-case"}, []string{},
-		"ignore pattern case", "")
-	onlyName = goopt.Flag([]string{"-n", "--filename"}, []string{},
-		"print only filenames", "")
-	ignoreFiles = goopt.Strings([]string{"-x", "--exclude"}, "RE",
-		"exclude files that match the regexp from search")
-	acceptedFiles = goopt.Strings([]string{"-o", "--only"}, "RE",
-		"include only files that match this regexp")
-	singleline = goopt.Flag([]string{"-s", "--singleline"}, []string{},
-		"match on a single line (^/$ will be beginning/end of line)", "")
-	plaintext = goopt.Flag([]string{"-p", "--plain"}, []string{},
-		"search plain text", "")
-	replace = goopt.String([]string{"-r", "--replace"}, "",
-		"replace found substrings with this string")
-	force = goopt.Flag([]string{"--force"}, []string{},
-		"force replacement in binary files", "")
-	showVersion = goopt.Flag([]string{"-V", "--version"}, []string{},
-		"show version and exit", "")
-	noIgnoresGlobal = goopt.Flag([]string{"-I", "--no-autoignore"}, []string{},
-		"do not read .git/.hgignore files", "")
-	verbose = goopt.Flag([]string{"-v", "--verbose"}, []string{},
-		"be verbose (show non-fatal errors, like unreadable files)", "")
 )
 
+var opts struct {
+	IgnoreCase      bool     `short:"i" long:"ignore-case" description:"ignore pattern case"`
+	OnlyName        bool     `short:"n" long:"filename" description:"print only filenames"`
+	IgnoreFiles     []string `short:"x" long:"exclude" description:"exclude files that match the regexp from search" value-name:"RE"`
+	AcceptFiles     []string `short:"o" long:"only" description:"search only in files that match the regexp" value-name:"RE"`
+	SingleLine      bool     `short:"s" long:"singleline" description:"match on a single line (^/$ will be begginning/end of line)"`
+	PlainText       bool     `short:"p" long:"plain" description:"search plain text"`
+	Replace         *string  `short:"r" long:"replace" description:"replace found substrings with this string"`
+	Force           bool     `long:"force" description:"force replacement in binary files"`
+	NoGlobalIgnores bool     `short:"I" long:"no-autoignore" description:"do not read .git/.hgignore files"`
+	Verbose         bool     `short:"v" long:"verbose" description:"be verbose (show non-fatal errors, like unreadable files)"`
+	ShowVersion     bool     `short:"V" long:"version" description:"show version and exit"`
+	ShowHelp        bool     `short:"h" long:"help" description:"show this help message"`
+}
+
 func main() {
-	goopt.Author = Author
-	goopt.Version = Version
-	goopt.Summary = Summary
-	goopt.Usage = func() string {
-		return fmt.Sprintf("Usage of goreplace %s:\n\t", Version) +
-			goopt.Summary + "\n" + goopt.Help()
+	argparser := flags.NewParser(&opts, flags.PrintErrors|flags.PassDoubleDash)
+
+	args, err := argparser.Parse()
+	if err != nil {
+		return
+	}
+
+	if opts.ShowVersion {
+		fmt.Printf("goreplace %s\n", Version)
+		return
 	}
 
 	var noIgnores bool
@@ -61,35 +56,30 @@ func main() {
 	}
 
 	cwd, _ := os.Getwd()
+
 	ignoreFileMatcher := NewMatcher(cwd, noIgnores)
+	ignoreFileMatcher.Append(opts.IgnoreFiles)
+
 	acceptedFileMatcher := NewGeneralMatcher([]string{}, []string{})
-	goopt.Summary += fmt.Sprintf("\n%s\n", ignoreFileMatcher)
-
-	goopt.Parse(nil)
-
-	if *showVersion {
-		fmt.Printf("goreplace %s\n", goopt.Version)
-		return
-	}
-
-	ignoreFileMatcher.Append(*ignoreFiles)
-
-	if len(*acceptedFiles) > 0 {
-		acceptedFileMatcher.Append(*acceptedFiles)
+	if len(opts.AcceptFiles) > 0 {
+		acceptedFileMatcher.Append(opts.AcceptFiles)
 	} else {
 		acceptedFileMatcher.Append([]string{".*"})
 	}
 
-	if len(goopt.Args) == 0 {
-		println(goopt.Usage())
+	argparser.Usage = fmt.Sprintf("[OPTIONS] string-to-search\n\n%s",
+		ignoreFileMatcher)
+
+	if opts.ShowHelp || len(args) == 0 {
+		argparser.WriteHelp(os.Stdout)
 		return
 	}
 
-	arg := goopt.Args[0]
-	if *plaintext {
+	arg := args[0]
+	if opts.PlainText {
 		arg = regexp.QuoteMeta(arg)
 	}
-	if *ignoreCase {
+	if opts.IgnoreCase {
 		arg = "(?i:" + arg + ")"
 	}
 
@@ -124,7 +114,9 @@ func searchFiles(pattern *regexp.Regexp, ignoreFileMatcher Matcher,
 
 	select {
 	case err := <-errors:
-		if (*verbose) { errhandle(err, false, "") }
+		if opts.Verbose {
+			errhandle(err, false, "")
+		}
 	default:
 	}
 }
@@ -193,7 +185,7 @@ func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
 	f, content := v.GetFileAndContent(fn, fi)
 	defer f.Close()
 
-	if len(*replace) == 0 {
+	if opts.Replace == nil {
 		v.SearchFile(fn, content)
 		return
 	}
@@ -214,7 +206,7 @@ func (v *GRVisitor) GetFileAndContent(fn string, fi os.FileInfo) (f *os.File, co
 	var err error
 	var msg string
 
-	if len(*replace) > 0 {
+	if opts.Replace != nil {
 		f, err = os.OpenFile(fn, os.O_RDWR, 0666)
 		msg = "can't open file %s for reading and writing"
 	} else {
@@ -223,7 +215,9 @@ func (v *GRVisitor) GetFileAndContent(fn string, fi os.FileInfo) (f *os.File, co
 	}
 
 	if err != nil {
-		if (*verbose) { errhandle(err, false, msg, fn) }
+		if opts.Verbose {
+			errhandle(err, false, msg, fn)
+		}
 		return
 	}
 
@@ -260,7 +254,7 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 		lines = append(lines, info.num)
 
 		if first {
-			if binary && !*onlyName {
+			if binary && !opts.OnlyName {
 				fmt.Printf("Binary file %s matches\n", fn)
 				break
 			} else {
@@ -268,7 +262,7 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 			}
 		}
 
-		if *onlyName {
+		if opts.OnlyName {
 			return
 		}
 
@@ -297,13 +291,13 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 	binary := false
 	changenum := 0
 
-	if *singleline {
+	if opts.SingleLine {
 		errhandle(
 			fmt.Errorf("Can't handle singleline replacements yet"),
 			true, "")
 	}
 
-	if *plaintext {
+	if opts.PlainText {
 		errhandle(
 			fmt.Errorf("Can't handle plain text replacements yet"),
 			true, "")
@@ -314,7 +308,7 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 	}
 
 	result = v.pattern.ReplaceAllFunc(content, func(s []byte) []byte {
-		if binary && !*force {
+		if binary && !opts.Force {
 			errhandle(
 				fmt.Errorf("supply --force to force change of binary file"),
 				false, "")
@@ -325,7 +319,7 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 		}
 
 		changenum += 1
-		return []byte(*replace)
+		return []byte(*opts.Replace)
 	})
 
 	if changenum > 0 {
@@ -342,7 +336,7 @@ type LineInfo struct {
 }
 
 func (v *GRVisitor) FindAllIndex(content []byte) (res []*LineInfo) {
-	if *singleline {
+	if opts.SingleLine {
 		return v.singlelineFindAllIndex(content)
 	}
 
