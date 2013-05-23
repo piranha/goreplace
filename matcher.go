@@ -13,8 +13,8 @@ import (
 	"strings"
 )
 
-type Ignorer interface {
-	Ignore(fn string, isdir bool) bool
+type Matcher interface {
+	Match(fn string, isdir bool) bool
 	Append(pats []string)
 }
 
@@ -26,7 +26,7 @@ func dirExists(path string) bool {
 	return fi.IsDir()
 }
 
-func NewIgnorer(wd string, noIgnores bool) Ignorer {
+func NewMatcher(wd string, noIgnores bool) Matcher {
 	path := wd
 	if !filepath.IsAbs(path) {
 		panic("Given path should be absolute")
@@ -38,26 +38,26 @@ func NewIgnorer(wd string, noIgnores bool) Ignorer {
 		}
 
 		if dirExists(filepath.Join(path, ".hg")) {
-			return NewHgIgnorer(wd, filepath.Join(path, ".hgignore"))
+			return NewHgMatcher(wd, filepath.Join(path, ".hgignore"))
 		}
 
 		if dirExists(filepath.Join(path, ".git")) {
-			return NewGitIgnorer(wd, filepath.Join(path, ".gitignore"))
+			return NewGitMatcher(wd, filepath.Join(path, ".gitignore"))
 		}
 
 		// f, err = os.Open(filepath.Join(path, ".git"))
 		// if err == nil {
-		// 	return NewGitIgnorer(wd, f)
+		// 	return NewGitMatcher(wd, f)
 		// }
 
 		path = filepath.Clean(filepath.Join(path, ".."))
 	}
 
-	return NewGeneralIgnorer()
+	return NewGeneralMatcher(generalDirs, generalPats)
 }
 
 // Ignore common patterns
-type GeneralIgnorer struct {
+type GeneralMatcher struct {
 	dirs []string
 	res  []*regexp.Regexp
 	both []*regexp.Regexp
@@ -69,15 +69,15 @@ var generalDirs = []string{"autom4te.cache", "blib", "_build", ".bzr", ".cdv",
 var generalPats = []string{`~$`, `#.+#$`, `[._].*\.swp$`,
 	`core\.[0-9]+$`, `\.pyc$`, `\.o$`, `\.6$`}
 
-func NewGeneralIgnorer() *GeneralIgnorer {
-	res := make([]*regexp.Regexp, len(generalPats))
-	for i, pat := range generalPats {
+func NewGeneralMatcher(dirs []string, filePats []string) *GeneralMatcher {
+	res := make([]*regexp.Regexp, len(filePats))
+	for i, pat := range filePats {
 		res[i] = regexp.MustCompile(pat)
 	}
-	return &GeneralIgnorer{generalDirs, res, []*regexp.Regexp{}}
+	return &GeneralMatcher{dirs, res, []*regexp.Regexp{}}
 }
 
-func (i *GeneralIgnorer) Ignore(fn string, isdir bool) bool {
+func (i *GeneralMatcher) Match(fn string, isdir bool) bool {
 	if isdir {
 		base := filepath.Base(fn)
 		for _, x := range i.dirs {
@@ -96,7 +96,7 @@ func (i *GeneralIgnorer) Ignore(fn string, isdir bool) bool {
 	return false
 }
 
-func (i *GeneralIgnorer) Append(pats []string) {
+func (i *GeneralMatcher) Append(pats []string) {
 	for _, pat := range pats {
 		re, err := regexp.Compile(pat)
 		if errhandle(err, false, "can't compile pattern %s\n", pat) {
@@ -106,12 +106,12 @@ func (i *GeneralIgnorer) Append(pats []string) {
 	}
 }
 
-func (i *GeneralIgnorer) String() string {
+func (i *GeneralMatcher) String() string {
 	return "General ignorer"
 }
 
 // read .hgignore and ignore patterns from there
-type HgIgnorer struct {
+type HgMatcher struct {
 	prefix string
 	fp     string
 	res    []*regexp.Regexp
@@ -124,7 +124,7 @@ var hgSyntaxes = map[string]bool{
 	"glob":   false,
 }
 
-func NewHgIgnorer(wd string, fp string) *HgIgnorer {
+func NewHgMatcher(wd string, fp string) *HgMatcher {
 	var prefix string
 	basepath := filepath.Clean(filepath.Join(fp, ".."))
 	if strings.HasPrefix(wd, basepath) {
@@ -141,7 +141,7 @@ func NewHgIgnorer(wd string, fp string) *HgIgnorer {
 
 	f, err := os.Open(fp)
 	if err != nil {
-		return &HgIgnorer{prefix, fp, res, globs}
+		return &HgMatcher{prefix, fp, res, globs}
 	}
 
 	reader := bufio.NewReader(f)
@@ -188,10 +188,10 @@ func NewHgIgnorer(wd string, fp string) *HgIgnorer {
 			globs = append(globs, pat)
 		}
 	}
-	return &HgIgnorer{prefix, fp, res, globs}
+	return &HgMatcher{prefix, fp, res, globs}
 }
 
-func (i *HgIgnorer) Ignore(fn string, isdir bool) bool {
+func (i *HgMatcher) Match(fn string, isdir bool) bool {
 	if len(i.prefix) > 0 {
 		fn = filepath.Join(i.prefix, fn)
 	}
@@ -216,7 +216,7 @@ func (i *HgIgnorer) Ignore(fn string, isdir bool) bool {
 	return false
 }
 
-func (i *HgIgnorer) Append(pats []string) {
+func (i *HgMatcher) Append(pats []string) {
 	for _, pat := range pats {
 		re, err := regexp.Compile(pat)
 		if errhandle(err, false, "can't compile pattern %s", pat) {
@@ -226,7 +226,7 @@ func (i *HgIgnorer) Append(pats []string) {
 	}
 }
 
-func (i *HgIgnorer) String() string {
+func (i *HgMatcher) String() string {
 	desc := fmt.Sprintf("Ignoring patterns from %s:\n", i.fp)
 	if len(i.res) > 0 {
 		desc += "\tregular expressions: "
@@ -244,7 +244,7 @@ func (i *HgIgnorer) String() string {
 }
 
 // read .gitignore and ignore patterns from there
-type GitIgnorer struct {
+type GitMatcher struct {
 	basepath string
 	prefix   string
 	fp       string
@@ -253,7 +253,7 @@ type GitIgnorer struct {
 	res      []*regexp.Regexp
 }
 
-func NewGitIgnorer(wd string, fp string) *GitIgnorer {
+func NewGitMatcher(wd string, fp string) *GitMatcher {
 	var prefix string
 	basepath := filepath.Clean(filepath.Join(fp, ".."))
 	if strings.HasPrefix(wd, basepath) {
@@ -270,7 +270,7 @@ func NewGitIgnorer(wd string, fp string) *GitIgnorer {
 
 	f, err := os.Open(fp)
 	if err != nil {
-		return &GitIgnorer{basepath, prefix, fp, globs, dirs, []*regexp.Regexp{}}
+		return &GitMatcher{basepath, prefix, fp, globs, dirs, []*regexp.Regexp{}}
 	}
 
 	reader := bufio.NewReader(f)
@@ -302,10 +302,10 @@ func NewGitIgnorer(wd string, fp string) *GitIgnorer {
 		}
 	}
 
-	return &GitIgnorer{basepath, prefix, fp, globs, dirs, []*regexp.Regexp{}}
+	return &GitMatcher{basepath, prefix, fp, globs, dirs, []*regexp.Regexp{}}
 }
 
-func (i *GitIgnorer) Ignore(fn string, isdir bool) bool {
+func (i *GitMatcher) Match(fn string, isdir bool) bool {
 	fullpath := filepath.Join(i.basepath, i.prefix, fn)
 	prefpath := filepath.Join(i.prefix, fn)
 	base := filepath.Base(prefpath)
@@ -340,7 +340,7 @@ func (i *GitIgnorer) Ignore(fn string, isdir bool) bool {
 	return false
 }
 
-func (i *GitIgnorer) Append(pats []string) {
+func (i *GitMatcher) Append(pats []string) {
 	for _, pat := range pats {
 		re, err := regexp.Compile(pat)
 		if errhandle(err, false, "can't compile pattern %s", pat) {
@@ -350,7 +350,7 @@ func (i *GitIgnorer) Append(pats []string) {
 	}
 }
 
-func (i *GitIgnorer) String() string {
+func (i *GitMatcher) String() string {
 	desc := fmt.Sprintf("Ignoring patterns from %s:\n", i.fp)
 	if len(i.globs) > 0 {
 		desc += "\tglobs: "
