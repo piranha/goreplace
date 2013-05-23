@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"goreplace/fnmatch"
+	"github.com/piranha/goreplace/fnmatch"
 )
 
 type Matcher interface {
