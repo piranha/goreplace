@@ -26,7 +26,7 @@ var (
 		"print only filenames", "")
 	ignoreFiles = goopt.Strings([]string{"-x", "--exclude"}, "RE",
 		"exclude files that match the regexp from search")
-	ignoreFilesNotMatching = goopt.Strings([]string{"-o", "--only"}, "RE",
+	acceptedFiles = goopt.Strings([]string{"-o", "--only"}, "RE",
 		"include only files that match this regexp")
 	singleline = goopt.Flag([]string{"-s", "--singleline"}, []string{},
 		"match on a single line (^/$ will be beginning/end of line)", "")
@@ -61,9 +61,9 @@ func main() {
 	}
 
 	cwd, _ := os.Getwd()
-	ignorer := NewIgnorer(cwd, noIgnores)
-	invIgnorer := NewGeneralIgnorer()
-	goopt.Summary += fmt.Sprintf("\n%s", ignorer)
+	ignoreFileMatcher := NewMatcher(cwd, noIgnores)
+	acceptedFileMatcher := NewGeneralMatcher([]string{}, []string{})
+	goopt.Summary += fmt.Sprintf("\n%s", ignoreFileMatcher)
 
 	goopt.Parse(nil)
 
@@ -72,12 +72,12 @@ func main() {
 		return
 	}
 
-	ignorer.Append(*ignoreFiles)
+	ignoreFileMatcher.Append(*ignoreFiles)
 
-	if len(*ignoreFilesNotMatching) > 0 {
-		invIgnorer.Append(*ignoreFilesNotMatching)
+	if len(*acceptedFiles) > 0 {
+		acceptedFileMatcher.Append(*acceptedFiles)
 	} else {
-		invIgnorer.Append([]string{".*"})
+		acceptedFileMatcher.Append([]string{".*"})
 	}
 
 	if len(goopt.Args) == 0 {
@@ -100,7 +100,7 @@ func main() {
 		errhandle(fmt.Errorf("Your pattern matches empty string"), true, "")
 	}
 
-	searchFiles(pattern, ignorer, invIgnorer)
+	searchFiles(pattern, ignoreFileMatcher, acceptedFileMatcher)
 }
 
 func errhandle(err error, exit bool, moreinfo string, a ...interface{}) bool {
@@ -114,9 +114,9 @@ func errhandle(err error, exit bool, moreinfo string, a ...interface{}) bool {
 	return true
 }
 
-func searchFiles(pattern *regexp.Regexp, ignorer Ignorer,
-	invIgnorer Ignorer) {
-	v := &GRVisitor{pattern, ignorer, invIgnorer, false}
+func searchFiles(pattern *regexp.Regexp, ignoreFileMatcher Matcher,
+	acceptedFileMatcher Matcher) {
+	v := &GRVisitor{pattern, ignoreFileMatcher, acceptedFileMatcher, false}
 
 	errors := make(chan error, 64)
 
@@ -157,15 +157,15 @@ func walkFunc(v *GRVisitor, errors chan<- error) filepath.WalkFunc {
 }
 
 type GRVisitor struct {
-	pattern    *regexp.Regexp
-	ignorer    Ignorer
-	invIgnorer Ignorer
+	pattern             *regexp.Regexp
+	ignoreFileMatcher   Matcher
+	acceptedFileMatcher Matcher
 	// Used to prevent sparse newline at the end of output
 	prependNewLine bool
 }
 
 func (v *GRVisitor) VisitDir(fn string, fi os.FileInfo) bool {
-	return !v.ignorer.Ignore(fi.Name(), true)
+	return !v.ignoreFileMatcher.IsMatching(fi.Name(), true)
 }
 
 func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
@@ -182,11 +182,11 @@ func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
 		return
 	}
 
-	if v.ignorer.Ignore(fn, false) {
+	if v.ignoreFileMatcher.IsMatching(fn, false) {
 		return
 	}
 
-	if !v.invIgnorer.Ignore(fn, false) {
+	if !v.acceptedFileMatcher.IsMatching(fn, false) {
 		return
 	}
 
