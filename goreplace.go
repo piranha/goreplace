@@ -26,8 +26,8 @@ var (
 		"print only filenames", "")
 	ignoreFiles = goopt.Strings([]string{"-x", "--exclude"}, "RE",
 		"exclude files that match the regexp from search")
-	ignoreFilesNotMatching = goopt.Strings([]string{"-a", "--ignore-if-not-matching"}, "RE",
-		"exclude files that does not match the regexp from search")
+	ignoreFilesNotMatching = goopt.Strings([]string{"-o", "--only"}, "RE",
+		"include only files that match this regexp")
 	singleline = goopt.Flag([]string{"-s", "--singleline"}, []string{},
 		"match on a single line (^/$ will be beginning/end of line)", "")
 	plaintext = goopt.Flag([]string{"-p", "--plain"}, []string{},
