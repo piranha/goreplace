@@ -76,6 +76,8 @@ supported as replacement, no regexp submatch support yet (planned, though).
 
 ## Changelog
 
+ - 0.5.1
+   - Fixed display bug when searching for obscure regexp
  - 0.5.0
    - `-o`/`--only` option  - include only files specified (thanks to Vignesh
      Sarma)

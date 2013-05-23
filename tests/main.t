@@ -1,12 +1,14 @@
 Go Replace tests:
 
   $ go build goreplace
-  $ gr=$(pwd)/goreplace
-  $ alias noc="perl -pe 's/\e\[?.*?[\@-~]//g'"
+  $ CURRENT=$(pwd)
+  $ gr () {
+  > $CURRENT/goreplace $@ | perl -pe 's/\e\[?.*?[\@-~]//g'
+  > }
 
 Usage:
 
-  $ $gr
+  $ gr
   Usage of goreplace *: (glob)
   \tgr [OPTS] string-to-search (esc)
   
@@ -30,7 +32,7 @@ Find a string in a file:
 
   $ mkdir one && cd one
   $ echo "test" > qwe
-  $ $gr st | noc
+  $ gr st
   qwe
   1:test
   $ cd ..
@@ -41,9 +43,19 @@ Check that fnmatch-style gitignore patterns are handled:
   $ mkdir .git
   $ mkdir -p one/two
   $ echo test > one/two/three
-  $ $gr st | noc
+  $ gr st
   one/two/three
   1:test
   $ echo "one/*" > .gitignore
-  $ $gr st | noc
+  $ gr st
   $ cd ..  
+
+Check plain text searching:
+
+  $ mkdir plain && cd plain
+  $ echo '\d' > test
+  $ gr '\d'
+  $ gr -p '\d'
+  test
+  1:\d
+  $ cd ..

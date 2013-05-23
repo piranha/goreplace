@@ -15,7 +15,7 @@ import (
 
 var (
 	Author  = "Alexander Solovyov"
-	Version = "0.5.0"
+	Version = "0.5.1"
 	Summary = "gr [OPTS] string-to-search\n"
 
 	byteNewLine []byte = []byte("\n")
@@ -87,7 +87,7 @@ func main() {
 
 	arg := goopt.Args[0]
 	if *plaintext {
-		arg = escapeRegexp(arg)
+		arg = regexp.QuoteMeta(arg)
 	}
 	if *ignoreCase {
 		arg = "(?i:" + arg + ")"
@@ -373,12 +373,12 @@ func (v *GRVisitor) singlelineFindAllIndex(content []byte) (res []*LineInfo) {
 }
 
 // Given a []byte, start and finish of some inner slice, will find nearest
-// newlines on both ends of this slice
+// newlines on both ends of this slice to contain this slice
 func beginend(s []byte, start int, finish int) (begin int, end int) {
 	begin = 0
 	end = len(s)
 
-	for i := start; i >= 0; i-- {
+	for i := start - 1; i >= 0; i-- {
 		if s[i] == byteNewLine[0] {
 			begin = i + 1
 			break
@@ -393,7 +393,7 @@ func beginend(s []byte, start int, finish int) (begin int, end int) {
 		}
 	}
 
-	return
+	return begin, end
 }
 
 type IntList []int
@@ -405,33 +405,4 @@ func (il IntList) Contains(i int) bool {
 		}
 	}
 	return false
-}
-
-var toEscape = map[rune]bool{
-	'\\': true,
-	'.':  true,
-	'(':  true,
-	')':  true,
-	'[':  true,
-	']':  true,
-	'{':  true,
-	'}':  true,
-	'+':  true,
-	'*':  true,
-	'?':  true,
-	'|':  true,
-	'^':  true,
-	'$':  true,
-}
-
-func escapeRegexp(arg string) string {
-	var buffer bytes.Buffer
-
-	for _, c := range arg {
-		if toEscape[c] {
-			buffer.WriteRune('\\')
-		}
-		buffer.WriteRune(c)
-	}
-	return buffer.String()
 }
