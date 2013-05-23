@@ -165,7 +165,7 @@ type GRVisitor struct {
 }
 
 func (v *GRVisitor) VisitDir(fn string, fi os.FileInfo) bool {
-	return !v.ignoreFileMatcher.IsMatching(fi.Name(), true)
+	return !v.ignoreFileMatcher.Match(fi.Name(), true)
 }
 
 func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
@@ -182,11 +182,11 @@ func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
 		return
 	}
 
-	if v.ignoreFileMatcher.IsMatching(fn, false) {
+	if v.ignoreFileMatcher.Match(fn, false) {
 		return
 	}
 
-	if !v.acceptedFileMatcher.IsMatching(fn, false) {
+	if !v.acceptedFileMatcher.Match(fn, false) {
 		return
 	}
 

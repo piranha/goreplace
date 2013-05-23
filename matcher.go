@@ -14,7 +14,7 @@ import (
 )
 
 type Matcher interface {
-	IsMatching(fn string, isdir bool) bool
+	Match(fn string, isdir bool) bool
 	Append(pats []string)
 }
 
@@ -77,7 +77,7 @@ func NewGeneralMatcher(dirs []string, filePats []string) *GeneralMatcher {
 	return &GeneralMatcher{dirs, res, []*regexp.Regexp{}}
 }
 
-func (i *GeneralMatcher) IsMatching(fn string, isdir bool) bool {
+func (i *GeneralMatcher) Match(fn string, isdir bool) bool {
 	if isdir {
 		base := filepath.Base(fn)
 		for _, x := range i.dirs {
@@ -191,7 +191,7 @@ func NewHgMatcher(wd string, fp string) *HgMatcher {
 	return &HgMatcher{prefix, fp, res, globs}
 }
 
-func (i *HgMatcher) IsMatching(fn string, isdir bool) bool {
+func (i *HgMatcher) Match(fn string, isdir bool) bool {
 	if len(i.prefix) > 0 {
 		fn = filepath.Join(i.prefix, fn)
 	}
@@ -305,7 +305,7 @@ func NewGitMatcher(wd string, fp string) *GitMatcher {
 	return &GitMatcher{basepath, prefix, fp, globs, dirs, []*regexp.Regexp{}}
 }
 
-func (i *GitMatcher) IsMatching(fn string, isdir bool) bool {
+func (i *GitMatcher) Match(fn string, isdir bool) bool {
 	fullpath := filepath.Join(i.basepath, i.prefix, fn)
 	prefpath := filepath.Join(i.prefix, fn)
 	base := filepath.Base(prefpath)
