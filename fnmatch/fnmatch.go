@@ -1,6 +1,11 @@
 // (c) 2011-2013 Alexander Solovyov
 // under terms of ISC license
 
+// this file is a translation of Python's fnmatch.py
+// it probably does not represent .gitignore tricky rules, there is some
+// more documentation to follow:
+// https://github.com/sjl/friendly-find/blob/master/ffind#L167-216
+
 package fnmatch
 
 import (
