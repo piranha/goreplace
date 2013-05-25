@@ -5,7 +5,7 @@ ALL = \
 	$(foreach arch,32 64,\
 	$(foreach tag,$(TAG) latest,\
 	$(foreach suffix,win.exe osx linux,\
-		gr-$(tag)-$(arch)-$(suffix))))
+		build/gr-$(tag)-$(arch)-$(suffix))))
 
 all: $(ALL)
 
@@ -20,13 +20,16 @@ test:
 # suffix itself is taken
 win.exe = windows
 osx = darwin
-gr-$(TAG)-64-%: $(SOURCE)
+build/gr-$(TAG)-64-%: $(SOURCE)
+	@mkdir -p $(@D)
 	CGO_ENABLED=0 GOOS=$(firstword $($*) $*) GOARCH=amd64 go build -o $@
 
-gr-$(TAG)-32-%: $(SOURCE)
+build/gr-$(TAG)-32-%: $(SOURCE)
+	@mkdir -p $(@D)
 	CGO_ENABLED=0 GOOS=$(firstword $($*) $*) GOARCH=386 go build -o $@
 
-gr-latest-%: gr-$(TAG)-%
+build/gr-latest-%: build/gr-$(TAG)-%
+	@mkdir -p $(@D)
 	ln -sf $< $@
 
 upload: $(ALL)
