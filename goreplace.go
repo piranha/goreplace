@@ -63,7 +63,7 @@ func main() {
 	cwd, _ := os.Getwd()
 	ignoreFileMatcher := NewMatcher(cwd, noIgnores)
 	acceptedFileMatcher := NewGeneralMatcher([]string{}, []string{})
-	goopt.Summary += fmt.Sprintf("\n%s", ignoreFileMatcher)
+	goopt.Summary += fmt.Sprintf("\n%s\n", ignoreFileMatcher)
 
 	goopt.Parse(nil)
 

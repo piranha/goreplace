@@ -228,17 +228,16 @@ func (i *HgMatcher) Append(pats []string) {
 }
 
 func (i *HgMatcher) String() string {
-	desc := fmt.Sprintf("Ignoring patterns from %s:\n", i.fp)
+	desc := fmt.Sprintf("Ignoring patterns from %s:", i.fp)
 	if len(i.res) > 0 {
-		desc += "\tregular expressions: "
+		desc += "\n\tregular expressions: "
 		for _, x := range i.res {
 			desc += x.String() + " "
 		}
-		desc += "\n"
 	}
 
 	if len(i.globs) > 0 {
-		desc += "\tglobs: " + strings.Join(i.globs, " ") + "\n"
+		desc += "\n\tglobs: " + strings.Join(i.globs, " ")
 	}
 
 	return desc
@@ -352,9 +351,9 @@ func (i *GitMatcher) Append(pats []string) {
 }
 
 func (i *GitMatcher) String() string {
-	desc := fmt.Sprintf("Ignoring patterns from %s:\n", i.fp)
+	desc := fmt.Sprintf("Ignoring patterns from %s:", i.fp)
 	if len(i.globs) > 0 {
-		desc += "\tglobs: "
+		desc += "\n\tglobs: "
 		for _, x := range i.globs {
 			if strings.HasPrefix(x, i.basepath) {
 				desc += x[len(i.basepath):] + " "
@@ -362,19 +361,17 @@ func (i *GitMatcher) String() string {
 				desc += x + " "
 			}
 		}
-		desc += "\n"
 	}
 
 	if len(i.res) > 0 {
-		desc += "\tregular expressions: "
+		desc += "\n\tregular expressions: "
 		for _, x := range i.res {
 			desc += x.String() + " "
 		}
-		desc += "\n"
 	}
 
 	if len(i.dirs) > 0 {
-		desc += "\tdirs: " + strings.Join(i.dirs, " ") + "\n"
+		desc += "\n\tdirs: " + strings.Join(i.dirs, " ")
 	}
 
 	return desc
