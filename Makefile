@@ -30,7 +30,7 @@ build/gr-$(TAG)-32-%: $(SOURCE)
 
 build/gr-%: build/gr-$(TAG)-%
 	@mkdir -p $(@D)
-	ln -sf $< $@
+	cd $(@D) && ln -sf $(<F) $(@F)
 
 upload: $(ALL)
 ifndef UPLOAD_PATH
