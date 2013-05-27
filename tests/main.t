@@ -9,24 +9,26 @@ Go Replace tests:
 Usage:
 
   $ gr
-  Usage of goreplace *: (glob)
-  \tgr [OPTS] string-to-search (esc)
+  Usage:
+    goreplace [OPTIONS] string-to-search
   
   General ignorer
-  Options:
-    -i     --ignore-case    ignore pattern case
-    -n     --filename       print only filenames
-    -x RE  --exclude=RE     exclude files that match the regexp from search
-    -o RE  --only=RE        include only files that match this regexp
-    -s     --singleline     match on a single line (^/$ will be beginning/end of line)
-    -p     --plain          search plain text
-    -r     --replace=       replace found substrings with this string
-           --force          force replacement in binary files
-    -V     --version        show version and exit
-    -I     --no-autoignore  do not read .git/.hgignore files
-    -v     --verbose        be verbose (show non-fatal errors, like unreadable files)
-           --help           show usage message
   
+  Application Options:
+    -i --ignore-case        ignore pattern case
+    -n --filename           print only filenames
+    -x --exclude=RE         exclude files that match the regexp from search
+    -o --only=RE            search only in files that match the regexp
+    -s --singleline         match on a single line (^/$ will be begginning/end of
+                            line)
+    -p --plain              search plain text
+    -r --replace=           replace found substrings with this string
+    -I --no-autoignore      do not read .git/.hgignore files
+       --force              force replacement in binary files
+    -v --verbose            be verbose (show non-fatal errors, like unreadable
+                            files)
+    -V --version            show version and exit
+       --help               show this help message
 
 Find a string in a file:
 

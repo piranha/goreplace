@@ -15,7 +15,7 @@ import (
 
 var (
 	Author  = "Alexander Solovyov"
-	Version = "0.5.2"
+	Version = "0.5.3"
 
 	byteNewLine []byte = []byte("\n")
 )
@@ -28,11 +28,11 @@ var opts struct {
 	SingleLine      bool     `short:"s" long:"singleline" description:"match on a single line (^/$ will be begginning/end of line)"`
 	PlainText       bool     `short:"p" long:"plain" description:"search plain text"`
 	Replace         *string  `short:"r" long:"replace" description:"replace found substrings with this string"`
-	Force           bool     `long:"force" description:"force replacement in binary files"`
 	NoGlobalIgnores bool     `short:"I" long:"no-autoignore" description:"do not read .git/.hgignore files"`
+	Force           bool     `long:"force" description:"force replacement in binary files"`
 	Verbose         bool     `short:"v" long:"verbose" description:"be verbose (show non-fatal errors, like unreadable files)"`
 	ShowVersion     bool     `short:"V" long:"version" description:"show version and exit"`
-	ShowHelp        bool     `short:"h" long:"help" description:"show this help message"`
+	ShowHelp        bool     `long:"help" description:"show this help message"`
 }
 
 func main() {
