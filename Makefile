@@ -3,9 +3,9 @@ TAG = $(shell git describe --tags)
 
 ALL = \
 	$(foreach arch,32 64,\
-	$(foreach tag,$(TAG) latest,\
+	$(foreach tag,-$(TAG)- -,\
 	$(foreach suffix,win.exe osx linux,\
-		build/gr-$(tag)-$(arch)-$(suffix))))
+		build/gr$(tag)$(arch)-$(suffix))))
 
 all: $(ALL)
 
@@ -28,7 +28,7 @@ build/gr-$(TAG)-32-%: $(SOURCE)
 	@mkdir -p $(@D)
 	CGO_ENABLED=0 GOOS=$(firstword $($*) $*) GOARCH=386 go build -o $@
 
-build/gr-latest-%: build/gr-$(TAG)-%
+build/gr-%: build/gr-$(TAG)-%
 	@mkdir -p $(@D)
 	ln -sf $< $@
 
