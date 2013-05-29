@@ -7,7 +7,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/piranha/goreplace/fnmatch"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -248,9 +247,72 @@ type GitMatcher struct {
 	basepath string
 	prefix   string
 	fp       string
-	globs    []string
-	dirs     []string
+	globs    []string // will be used for showing help only
+	globres  []*regexp.Regexp
 	res      []*regexp.Regexp
+}
+
+// many thanks to Steve Losh for this algorithm
+func gitGlobRe(s string) *regexp.Regexp {
+	var pat bytes.Buffer
+	if strings.Contains(s, "/") {
+		// Patterns with a slash have to match against the entire pathname, so
+		// they need to be rooted at the beginning
+		pat.WriteString("^./")
+	} else {
+		// Patterns without a slash match against basename, which is simulated
+		// by including last path divider in the pattern
+		pat.WriteString("/")
+	}
+	s = strings.TrimLeft(s, "/")
+
+	i := 0
+	n := len(s)
+
+	for i < n {
+		c := s[i]
+		i += 1
+
+		switch c {
+		case '?':
+			pat.WriteByte('.')
+		case '*':
+			pat.WriteString("[^/]*")
+		case '[':
+			j := i
+			if j < n && (s[j] == '!' || s[j] == ']') {
+				j += 1
+			}
+			for j < n && s[j] != ']' {
+				j += 1
+			}
+
+			if j >= n {
+				pat.WriteString("\\[")
+			} else {
+				stuff := strings.Replace(s[i:j], "\\", "\\\\", -1)
+				i = j + 1
+				if stuff[0] == '!' {
+					stuff = "^" + stuff[1:]
+				} else if stuff[0] == '^' {
+					stuff = "\\" + stuff
+				}
+				pat.WriteString("[")
+				pat.WriteString(stuff)
+				pat.WriteString("]")
+			}
+		default:
+			pat.WriteString(regexp.QuoteMeta(string(c)))
+		}
+
+		if i == n && c != '/' {
+			pat.WriteByte('$')
+		}
+	}
+
+	re, err := regexp.Compile(pat.String())
+	errhandle(err, false, "can't parse pattern '%s'", s)
+	return re
 }
 
 func NewGitMatcher(wd string, fp string) *GitMatcher {
@@ -266,11 +328,11 @@ func NewGitMatcher(wd string, fp string) *GitMatcher {
 	}
 
 	globs := []string{}
-	dirs := []string{}
+	globres := []*regexp.Regexp{}
 
 	f, err := os.Open(fp)
 	if err != nil {
-		return &GitMatcher{basepath, prefix, fp, globs, dirs, []*regexp.Regexp{}}
+		return &GitMatcher{basepath, prefix, fp, globs, globres, []*regexp.Regexp{}}
 	}
 
 	reader := bufio.NewReader(f)
@@ -289,50 +351,29 @@ func NewGitMatcher(wd string, fp string) *GitMatcher {
 			continue
 		}
 
-		slashpos := bytes.IndexByte(line, '/')
-		switch slashpos {
-		case -1:
-			globs = append(globs, string(line))
-		case len(line) - 1:
-			dirs = append(dirs, string(line))
-		default:
-			// if this is wrong, then blame writers of gitignore manual,
-			// it's unobvious as possible
-			globs = append(globs, filepath.Join(basepath, string(line)))
-		}
+		globs = append(globs, string(line))
+		globres = append(globres, gitGlobRe(string(line)))
 	}
 
-	return &GitMatcher{basepath, prefix, fp, globs, dirs, []*regexp.Regexp{}}
+	return &GitMatcher{basepath, prefix, fp, globs, globres, []*regexp.Regexp{}}
 }
 
 func (i *GitMatcher) Match(fn string, isdir bool) bool {
-	fullpath := filepath.Join(i.basepath, i.prefix, fn)
-	prefpath := filepath.Join(i.prefix, fn)
-	base := filepath.Base(prefpath)
-	dirpath := prefpath[:len(prefpath)-len(base)]
+	path := fmt.Sprintf(".%c", filepath.Separator) + filepath.Join(i.prefix, fn)
+	base := filepath.Base(path)
 
 	if isdir && base == ".git" {
 		return true
 	}
 
-	for _, pat := range i.globs {
-		if strings.Index(pat, "/") != -1 {
-			if m, _ := fnmatch.Match(pat, fullpath); m {
-				return true
-			}
-		} else if m, _ := filepath.Match(pat, fn); m {
+	for _, pat := range i.globres {
+		if pat.MatchString(path) {
 			return true
 		}
 	}
 
 	for _, pat := range i.res {
-		if pat.Match([]byte(fn)) {
-			return true
-		}
-	}
-
-	for _, dir := range i.dirs {
-		if strings.Contains(dirpath, dir) {
+		if pat.MatchString(path) {
 			return true
 		}
 	}
@@ -343,7 +384,7 @@ func (i *GitMatcher) Match(fn string, isdir bool) bool {
 func (i *GitMatcher) Append(pats []string) {
 	for _, pat := range pats {
 		re, err := regexp.Compile(pat)
-		if errhandle(err, false, "can't compile pattern %s", pat) {
+		if errhandle(err, false, "can't compile pattern '%s'", pat) {
 			continue
 		}
 		i.res = append(i.res, re)
@@ -368,10 +409,6 @@ func (i *GitMatcher) String() string {
 		for _, x := range i.res {
 			desc += x.String() + " "
 		}
-	}
-
-	if len(i.dirs) > 0 {
-		desc += "\n\tdirs: " + strings.Join(i.dirs, " ")
 	}
 
 	return desc
