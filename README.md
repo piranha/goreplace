@@ -76,17 +76,22 @@ supported as replacement, no regexp submatch support yet (planned, though).
 
 ## Changelog
 
+ - 1.0
+   - Option `-f`/`--find-files` - search for files by their names
+   - `.gitignore` support improved
+ - 0.5.2
+   - `-r` now can accept empty string
  - 0.5.1
    - Fixed display bug when searching for obscure regexp
  - 0.5.0
    - `-o`/`--only` option  - include only files specified (thanks to Vignesh
      Sarma)
-   - fixed support of recursive `*` in `.gitignore`
+   - Fixed support of recursive `*` in `.gitignore`
  - 0.4.3
-   - make ignorers cross-platform (fixed them for windows)
+   - Make ignorers cross-platform (fixed them for windows)
  - 0.4.2
-   - cleanup error reporting
+   - Cleanup error reporting
  - 0.4.1
-   - hide non-fatal errors by default
+   - Hide non-fatal errors by default
  - 0.4.0
-   - option for plain-text searching
+   - Option for plain-text searching

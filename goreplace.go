@@ -15,7 +15,7 @@ import (
 
 var (
 	Author  = "Alexander Solovyov"
-	Version = "0.5.3"
+	Version = "1.0"
 
 	byteNewLine []byte = []byte("\n")
 )
@@ -23,6 +23,7 @@ var (
 var opts struct {
 	IgnoreCase      bool     `short:"i" long:"ignore-case" description:"ignore pattern case"`
 	OnlyName        bool     `short:"n" long:"filename" description:"print only filenames"`
+	FindFiles       bool     `short:"f" long:"find-files" description:"search for files and not for text in them"`
 	IgnoreFiles     []string `short:"x" long:"exclude" description:"exclude files that match the regexp from search" value-name:"RE"`
 	AcceptFiles     []string `short:"o" long:"only" description:"search only in files that match the regexp" value-name:"RE"`
 	SingleLine      bool     `short:"s" long:"singleline" description:"match on a single line (^/$ will be begginning/end of line)"`
@@ -161,16 +162,12 @@ func (v *GRVisitor) VisitDir(fn string, fi os.FileInfo) bool {
 }
 
 func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
-	if fi.IsDir() {
-		return
-	}
-
 	if fi.Size() >= 1024*1024*10 {
 		fmt.Fprintf(os.Stderr, "Skipping %s, too big: %d\n", fn, fi.Size())
 		return
 	}
 
-	if fi.Size() == 0 {
+	if fi.Size() == 0 && !opts.FindFiles {
 		return
 	}
 
@@ -179,6 +176,11 @@ func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
 	}
 
 	if !v.acceptedFileMatcher.Match(fn, false) {
+		return
+	}
+
+	if opts.FindFiles {
+		v.SearchFileName(fn)
 		return
 	}
 
@@ -267,16 +269,27 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 		}
 
 		color.Printf("@!@y%d:", info.num)
-		coloredLine := v.pattern.ReplaceAllStringFunc(string(info.line),
+		colored := v.pattern.ReplaceAllStringFunc(string(info.line),
 			func(wrap string) string {
 				return color.Sprintf("@Y%s", wrap)
 			})
-		fmt.Printf("%s\n", coloredLine)
+		fmt.Println(colored)
 	}
 
 	if len(lines) > 0 {
 		v.prependNewLine = true
 	}
+}
+
+func (v *GRVisitor) SearchFileName(fn string) {
+	if !v.pattern.MatchString(fn) {
+		return
+	}
+	colored := v.pattern.ReplaceAllStringFunc(fn,
+		func(wrap string) string {
+			return color.Sprintf("@Y%s", wrap)
+		})
+	fmt.Println(colored)
 }
 
 func getSuffix(num int) string {
