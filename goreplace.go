@@ -6,7 +6,7 @@ package main
 import (
 	"bytes"
 	"fmt"
-	flags "github.com/piranha/go-flags"
+	flags "github.com/jessevdk/go-flags"
 	"github.com/wsxiaoys/terminal/color"
 	"os"
 	"path/filepath"
@@ -110,7 +110,7 @@ func searchFiles(pattern *regexp.Regexp, ignoreFileMatcher Matcher,
 
 	errors := make(chan error, 64)
 
-	filepath.Walk(".", walkFunc(v, errors))
+	filepath.Walk(".", v.Walker(errors))
 
 	select {
 	case err := <-errors:
@@ -121,7 +121,15 @@ func searchFiles(pattern *regexp.Regexp, ignoreFileMatcher Matcher,
 	}
 }
 
-func walkFunc(v *GRVisitor, errors chan<- error) filepath.WalkFunc {
+type GRVisitor struct {
+	pattern             *regexp.Regexp
+	ignoreFileMatcher   Matcher
+	acceptedFileMatcher Matcher
+	// Used to prevent sparse newline at the end of output
+	prependNewLine bool
+}
+
+func (v *GRVisitor) Walker(errors chan<- error) filepath.WalkFunc {
 	return func(fn string, fi os.FileInfo, err error) error {
 		if err != nil {
 			errors <- err
@@ -146,14 +154,6 @@ func walkFunc(v *GRVisitor, errors chan<- error) filepath.WalkFunc {
 		v.VisitFile(fn, fi)
 		return nil
 	}
-}
-
-type GRVisitor struct {
-	pattern             *regexp.Regexp
-	ignoreFileMatcher   Matcher
-	acceptedFileMatcher Matcher
-	// Used to prevent sparse newline at the end of output
-	prependNewLine bool
 }
 
 func (v *GRVisitor) VisitDir(fn string, fi os.FileInfo) bool {
