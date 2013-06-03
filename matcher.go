@@ -277,7 +277,11 @@ func gitGlobRe(s string) *regexp.Regexp {
 		case '?':
 			pat.WriteByte('.')
 		case '*':
-			pat.WriteString("[^/]*")
+			if i == n {
+				pat.WriteString(".*")
+			} else {
+				pat.WriteString("[^/]*")
+			}
 		case '[':
 			j := i
 			if j < n && (s[j] == '!' || s[j] == ']') {

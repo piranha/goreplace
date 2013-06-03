@@ -15,20 +15,21 @@ Usage:
   General ignorer
   
   Application Options:
-    -i --ignore-case        ignore pattern case
-    -n --filename           print only filenames
-    -x --exclude=RE         exclude files that match the regexp from search
-    -o --only=RE            search only in files that match the regexp
-    -s --singleline         match on a single line (^/$ will be begginning/end of
+    -i, --ignore-case       ignore pattern case
+    -n, --filename          print only filenames
+    -f, --find-files        search for files and not for text in them
+    -x, --exclude=RE        exclude files that match the regexp from search
+    -o, --only=RE           search only in files that match the regexp
+    -s, --singleline        match on a single line (^/$ will be begginning/end of
                             line)
-    -p --plain              search plain text
-    -r --replace=           replace found substrings with this string
-    -I --no-autoignore      do not read .git/.hgignore files
-       --force              force replacement in binary files
-    -v --verbose            be verbose (show non-fatal errors, like unreadable
+    -p, --plain             search plain text
+    -r, --replace=          replace found substrings with this string
+    -I, --no-autoignore     do not read .git/.hgignore files
+        --force             force replacement in binary files
+    -v, --verbose           be verbose (show non-fatal errors, like unreadable
                             files)
-    -V --version            show version and exit
-       --help               show this help message
+    -V, --version           show version and exit
+        --help              show this help message
 
 Find a string in a file:
 

@@ -76,6 +76,8 @@ supported as replacement, no regexp submatch support yet (planned, though).
 
 ## Changelog
 
+ - 1.1
+   - Another `.gitignore` improvement
  - 1.0
    - Option `-f`/`--find-files` - search for files by their names
    - `.gitignore` support improved
