@@ -17,7 +17,7 @@ var (
 	Author  = "Alexander Solovyov"
 	Version = "1.0"
 
-	byteNewLine []byte = []byte("\n")
+	byteNewLine = []byte("\n")
 )
 
 var opts struct {
