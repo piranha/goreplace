@@ -162,11 +162,6 @@ func (v *GRVisitor) VisitDir(fn string, fi os.FileInfo) bool {
 }
 
 func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
-	if fi.Size() >= 1024*1024*10 {
-		fmt.Fprintf(os.Stderr, "Skipping %s, too big: %d\n", fn, fi.Size())
-		return
-	}
-
 	if fi.Size() == 0 && !opts.FindFiles {
 		return
 	}
@@ -176,6 +171,11 @@ func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
 	}
 
 	if !v.acceptedFileMatcher.Match(fn, false) {
+		return
+	}
+
+	if fi.Size() >= 1024*1024*10 {
+		fmt.Fprintf(os.Stderr, "Skipping %s, too big: %d\n", fn, fi.Size())
 		return
 	}
 
