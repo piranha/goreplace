@@ -15,7 +15,7 @@ import (
 
 var (
 	Author  = "Alexander Solovyov"
-	Version = "1.1"
+	Version = "1.2"
 
 	byteNewLine = []byte("\n")
 )
@@ -158,7 +158,7 @@ func (v *GRVisitor) Walker(errors chan<- error) filepath.WalkFunc {
 }
 
 func (v *GRVisitor) VisitDir(fn string, fi os.FileInfo) bool {
-	return !v.ignoreFileMatcher.Match(fi.Name(), true)
+	return !v.ignoreFileMatcher.Match(fn, true)
 }
 
 func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {

@@ -253,6 +253,7 @@ type GitMatcher struct {
 }
 
 // many thanks to Steve Losh for this algorithm
+// https://github.com/sjl/friendly-find/blob/master/ffind#L167-216
 func gitGlobRe(s string) *regexp.Regexp {
 	var pat bytes.Buffer
 	if strings.Contains(s, "/") {

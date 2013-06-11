@@ -46,11 +46,11 @@ Check that fnmatch-style gitignore patterns are handled:
   $ mkdir .git
   $ mkdir -p one/two
   $ echo test > one/two/three
-  $ gr st
+  $ gr test
   one/two/three
   1:test
   $ echo "one/*" > .gitignore
-  $ gr st
+  $ gr test
   $ cd ..  
 
 Check plain text searching:
@@ -62,3 +62,14 @@ Check plain text searching:
   test
   1:\d
   $ cd ..
+
+Check that anchored directories are properly ignored:
+
+  $ mkdir nested && cd nested
+  $ mkdir .git
+  $ mkdir -p one/two
+  $ echo test > one/two/three
+  $ echo "/one/two" > .gitignore
+  $ gr test
+  $ cd ..
+

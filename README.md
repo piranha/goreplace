@@ -76,6 +76,8 @@ supported as replacement, no regexp submatch support yet (planned, though).
 
 ## Changelog
 
+ - 1.2
+   - `.gitignore` fixes will never end it seems, another one
  - 1.1
    - Another `.gitignore` improvement
  - 1.0
