@@ -366,6 +366,10 @@ func (i *GitMatcher) Match(fn string, isdir bool) bool {
 	path := fmt.Sprintf(".%c", filepath.Separator) + filepath.Join(i.prefix, fn)
 	base := filepath.Base(path)
 
+	if filepath.Separator != '/' {
+		path = strings.Replace(path, string(filepath.Separator), "/", -1)
+	}
+
 	if isdir && base == ".git" {
 		return true
 	}
