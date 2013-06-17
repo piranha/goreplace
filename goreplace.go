@@ -15,7 +15,7 @@ import (
 
 var (
 	Author  = "Alexander Solovyov"
-	Version = "1.2"
+	Version = "1.3"
 
 	byteNewLine = []byte("\n")
 )
@@ -185,6 +185,9 @@ func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
 	}
 
 	f, content := v.GetFileAndContent(fn, fi)
+	if f == nil {
+		return
+	}
 	defer f.Close()
 
 	if opts.Replace == nil {

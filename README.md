@@ -76,6 +76,8 @@ supported as replacement, no regexp submatch support yet (planned, though).
 
 ## Changelog
 
+ - 1.3
+   - Fix stack trace dump on Linux when file is not readable
  - 1.2
    - `.gitignore` fixes will never end it seems, another one
  - 1.1
