@@ -4,11 +4,15 @@ Go Replace (gr) is a simple utility which can be used as replacement for grep +
 sed combination in one of most popular cases - find files, which contain
 something, possibly replace this with something else. Main points:
 
- - Uses `.hgignore`/`.gitignore` to skip files
+ - Reads `.hgignore`/`.gitignore` to skip files
  - Skips binaries
  - Familiar PCRE-like regexp syntax
  - Can perform replacements
  - Fast
+
+Bonus:
+
+ - Can search in file names (i.e. a simple alternative to `find`)
 
 ## Why
 
