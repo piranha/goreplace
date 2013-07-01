@@ -15,7 +15,7 @@ import (
 
 var (
 	Author  = "Alexander Solovyov"
-	Version = "1.3"
+	Version = "1.4"
 
 	byteNewLine = []byte("\n")
 )
@@ -174,13 +174,13 @@ func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
 		return
 	}
 
-	if fi.Size() >= 1024*1024*10 {
-		fmt.Fprintf(os.Stderr, "Skipping %s, too big: %d\n", fn, fi.Size())
+	if opts.FindFiles {
+		v.SearchFileName(fn)
 		return
 	}
 
-	if opts.FindFiles {
-		v.SearchFileName(fn)
+	if fi.Size() >= 1024*1024*10 {
+		fmt.Fprintf(os.Stderr, "Skipping %s, too big: %d\n", fn, fi.Size())
 		return
 	}
 
