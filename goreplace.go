@@ -34,7 +34,7 @@ var opts struct {
 	Verbose         bool     `short:"v" long:"verbose" description:"be verbose (show non-fatal errors, like unreadable files)"`
 	ShowVersion     bool     `short:"V" long:"version" description:"show version and exit"`
 	ShowHelp        bool     `long:"help" description:"show this help message"`
-	ShowColors		bool	 `short:"c" long:"colors" description:"show colors in output"`
+	NoColors		bool	 `short:"c" long:"no-colors" description:"do not show colors in output"`
 }
 
 func main() {
@@ -264,7 +264,7 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 				fmt.Printf("Binary file %s matches\n", fn)
 				break
 			} else {
-				if (opts.ShowColors) {
+				if (!opts.NoColors) {
 					color.Printf("@g%s\n", fn)
 				} else {
 					fmt.Printf("%s\n",fn)
@@ -276,7 +276,7 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 			return
 		}
 
-		if (opts.ShowColors) {
+		if (!opts.NoColors) {
 			color.Printf("@!@y%d:", info.num)
 		} else {
 			fmt.Printf("%d:", info.num)
@@ -284,7 +284,7 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 		colored := v.pattern.ReplaceAllStringFunc(string(info.line),
 			func(wrap string) string {
 				var res string				
-				if (opts.ShowColors) {
+				if (!opts.NoColors) {
 					res = color.Sprintf("@Y%s", wrap)
 				} else {
 					res = fmt.Sprintf("%s", wrap)
@@ -306,7 +306,7 @@ func (v *GRVisitor) SearchFileName(fn string) {
 	colored := v.pattern.ReplaceAllStringFunc(fn,
 		func(wrap string) string {
 			var res string
-			if (opts.ShowColors) {
+			if (!opts.NoColors) {
 				res = color.Sprintf("@Y%s", wrap)
 			} else {
 				res = fmt.Sprintf("%s", wrap)
@@ -352,7 +352,7 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 		}
 		if !changed {
 			changed = true
-			if (opts.ShowColors) {
+			if (!opts.NoColors) {
 				color.Printf("@g%s", fn)
 			} else {
 				fmt.Printf("%s", fn)
@@ -364,7 +364,7 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 	})
 
 	if changenum > 0 {
-		if (opts.ShowColors) {
+		if (!opts.NoColors) {
 			color.Printf("@!@y - %d change%s made\n",
 				changenum, getSuffix(changenum))
 		} else {
