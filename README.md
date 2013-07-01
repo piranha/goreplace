@@ -80,6 +80,9 @@ supported as replacement, no regexp submatch support yet (planned, though).
 
 ## Changelog
 
+ - 1.5
+   - Fix deadlock when stumbling around a pile of unreadable files (a lot of
+     symlinks pointing nowhere, for example)
  - 1.4
    - Fix skipping big files when searching only in file names
  - 1.3

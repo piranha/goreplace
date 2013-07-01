@@ -15,7 +15,7 @@ import (
 
 var (
 	Author  = "Alexander Solovyov"
-	Version = "1.4"
+	Version = "1.5"
 
 	byteNewLine = []byte("\n")
 )
@@ -85,20 +85,20 @@ func main() {
 	}
 
 	pattern, err := regexp.Compile(arg)
-	errhandle(err, true, "")
+	errhandle(err, true)
 
 	if pattern.Match([]byte("")) {
-		errhandle(fmt.Errorf("Your pattern matches empty string"), true, "")
+		errhandle(fmt.Errorf("Your pattern matches empty string"), true)
 	}
 
 	searchFiles(pattern, ignoreFileMatcher, acceptedFileMatcher)
 }
 
-func errhandle(err error, exit bool, moreinfo string, a ...interface{}) bool {
+func errhandle(err error, exit bool) bool {
 	if err == nil {
 		return false
 	}
-	fmt.Fprintf(os.Stderr, "%s\n%s\n", err, fmt.Sprintf(moreinfo, a...))
+	fmt.Fprintf(os.Stderr, "%s\n", err)
 	if exit {
 		os.Exit(1)
 	}
@@ -109,52 +109,36 @@ func searchFiles(pattern *regexp.Regexp, ignoreFileMatcher Matcher,
 	acceptedFileMatcher Matcher) {
 	v := &GRVisitor{pattern, ignoreFileMatcher, acceptedFileMatcher, false}
 
-	errors := make(chan error, 64)
-
-	filepath.Walk(".", v.Walker(errors))
-
-	select {
-	case err := <-errors:
-		if opts.Verbose {
-			errhandle(err, false, "")
-		}
-	default:
-	}
+	err := filepath.Walk(".", v.Walk)
+	errhandle(err, false)
 }
 
 type GRVisitor struct {
 	pattern             *regexp.Regexp
 	ignoreFileMatcher   Matcher
 	acceptedFileMatcher Matcher
+	// errors              chan error
 	// Used to prevent sparse newline at the end of output
-	prependNewLine bool
+	prependNewLine      bool
 }
 
-func (v *GRVisitor) Walker(errors chan<- error) filepath.WalkFunc {
-	return func(fn string, fi os.FileInfo, err error) error {
-		if err != nil {
-			errors <- err
-			return nil
+func (v *GRVisitor) Walk(fn string, fi os.FileInfo, err error) error {
+	if err != nil {
+		if opts.Verbose {
+			errhandle(err, false)
 		}
-
-		// NOTE: if a directory is a symlink, filepath.Walk won't recurse inside
-		if fi.Mode()&os.ModeSymlink != 0 {
-			if fi, err = os.Stat(fn); err != nil {
-				errors <- err
-				return nil
-			}
-		}
-
-		if fi.IsDir() {
-			if !v.VisitDir(fn, fi) {
-				return filepath.SkipDir
-			}
-			return nil
-		}
-
-		v.VisitFile(fn, fi)
 		return nil
 	}
+
+	if fi.IsDir() {
+		if !v.VisitDir(fn, fi) {
+			return filepath.SkipDir
+		}
+		return nil
+	}
+
+	v.VisitFile(fn, fi)
+	return nil
 }
 
 func (v *GRVisitor) VisitDir(fn string, fi os.FileInfo) bool {
@@ -180,8 +164,19 @@ func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
 	}
 
 	if fi.Size() >= 1024*1024*10 {
-		fmt.Fprintf(os.Stderr, "Skipping %s, too big: %d\n", fn, fi.Size())
+		errhandle(fmt.Errorf("Skipping %s, too big: %d\n", fn, fi.Size()),
+			false)
 		return
+	}
+
+	// just skip invalid symlinks
+	if fi.Mode()&os.ModeSymlink != 0 {
+		if _, err := os.Stat(fn); err != nil {
+			if opts.Verbose {
+				errhandle(err, false)
+			}
+			return
+		}
 	}
 
 	f, content := v.GetFileAndContent(fn, fi)
@@ -199,39 +194,42 @@ func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
 	if changed {
 		f.Seek(0, 0)
 		n, err := f.Write(result)
-		errhandle(err, true, "Error writing replacement in file %s", fn)
+		errhandle(fmt.Errorf("Error writing replacement to file '%s': %s",
+			fn, err), true)
 		if int64(n) < fi.Size() {
 			err := f.Truncate(int64(n))
-			errhandle(err, true, "Error truncating file to size %d", f)
+			if err != nil {
+				errhandle(fmt.Errorf("Error truncating file '%s' to size %d",
+					f, n), true)
+			}
 		}
 	}
 }
 
 func (v *GRVisitor) GetFileAndContent(fn string, fi os.FileInfo) (f *os.File, content []byte) {
 	var err error
-	var msg string
 
 	if opts.Replace != nil {
 		f, err = os.OpenFile(fn, os.O_RDWR, 0666)
-		msg = "can't open file %s for reading and writing"
 	} else {
 		f, err = os.Open(fn)
-		msg = "can't open file %s for reading"
 	}
 
 	if err != nil {
 		if opts.Verbose {
-			errhandle(err, false, msg, fn)
+			errhandle(err, false)
 		}
 		return
 	}
 
 	content = make([]byte, fi.Size())
 	n, err := f.Read(content)
-	errhandle(err, true, "can't read file %s", fn)
+	if err != nil {
+		errhandle(fmt.Errorf("Can't read file '%s': %s", fn), true)
+	}
 	if int64(n) != fi.Size() {
-		errhandle(fmt.Errorf("Not whole file was read, only %d from %d",
-			n, fi.Size()), true, "")
+		errhandle(fmt.Errorf("Not whole file '%s' was read, only %d from %d",
+			fn, n, fi.Size()), true)
 	}
 
 	return
@@ -260,7 +258,7 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 
 		if first {
 			if binary && !opts.OnlyName {
-				fmt.Printf("Binary file %s matches\n", fn)
+				fmt.Printf("Binary file '%s' matches", fn)
 				break
 			} else {
 				color.Printf("@g%s\n", fn)
@@ -308,15 +306,13 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 	changenum := 0
 
 	if opts.SingleLine {
-		errhandle(
-			fmt.Errorf("Can't handle singleline replacements yet"),
-			true, "")
+		errhandle(fmt.Errorf("Can't handle singleline replacements yet"),
+			true)
 	}
 
 	if opts.PlainText {
-		errhandle(
-			fmt.Errorf("Can't handle plain text replacements yet"),
-			true, "")
+		errhandle(fmt.Errorf("Can't handle plain text replacements yet"),
+			true)
 	}
 
 	if bytes.IndexByte(content, 0) != -1 {
@@ -327,7 +323,7 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 		if binary && !opts.Force {
 			errhandle(
 				fmt.Errorf("supply --force to force change of binary file"),
-				false, "")
+				false)
 		}
 		if !changed {
 			changed = true

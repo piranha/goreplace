@@ -99,7 +99,8 @@ func (i *GeneralMatcher) Match(fn string, isdir bool) bool {
 func (i *GeneralMatcher) Append(pats []string) {
 	for _, pat := range pats {
 		re, err := regexp.Compile(pat)
-		if errhandle(err, false, "can't compile pattern %s\n", pat) {
+		if err != nil {
+			errhandle(fmt.Errorf("can't compile pattern %s\n", pat), false)
 			continue
 		}
 		i.res = append(i.res, re)
@@ -180,7 +181,8 @@ func NewHgMatcher(wd string, fp string) *HgMatcher {
 		pat := string(line)
 		if isRe {
 			re, err := regexp.Compile(pat)
-			if errhandle(err, false, "can't compile pattern %s", pat) {
+			if err != nil {
+				errhandle(fmt.Errorf("can't compile pattern %s\n", pat), false)
 				continue
 			}
 			res = append(res, re)
@@ -219,7 +221,8 @@ func (i *HgMatcher) Match(fn string, isdir bool) bool {
 func (i *HgMatcher) Append(pats []string) {
 	for _, pat := range pats {
 		re, err := regexp.Compile(pat)
-		if errhandle(err, false, "can't compile pattern %s", pat) {
+		if err != nil {
+			errhandle(fmt.Errorf("can't compile pattern %s\n", pat), false)
 			continue
 		}
 		i.res = append(i.res, re)
@@ -316,7 +319,7 @@ func gitGlobRe(s string) *regexp.Regexp {
 	}
 
 	re, err := regexp.Compile(pat.String())
-	errhandle(err, false, "can't parse pattern '%s'", s)
+	errhandle(fmt.Errorf("can't parse pattern '%s': %s", s, err), false)
 	return re
 }
 
@@ -393,7 +396,8 @@ func (i *GitMatcher) Match(fn string, isdir bool) bool {
 func (i *GitMatcher) Append(pats []string) {
 	for _, pat := range pats {
 		re, err := regexp.Compile(pat)
-		if errhandle(err, false, "can't compile pattern '%s'", pat) {
+		if err != nil {
+			errhandle(fmt.Errorf("can't compile pattern %s\n", pat), false)
 			continue
 		}
 		i.res = append(i.res, re)
