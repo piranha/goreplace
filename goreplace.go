@@ -13,12 +13,11 @@ import (
 	"regexp"
 )
 
-var (
+const (
 	Author  = "Alexander Solovyov"
-	Version = "1.5"
-
-	byteNewLine = []byte("\n")
+	Version = "1.6"
 )
+var byteNewLine = []byte("\n")
 
 var opts struct {
 	IgnoreCase      bool     `short:"i" long:"ignore-case" description:"ignore pattern case"`

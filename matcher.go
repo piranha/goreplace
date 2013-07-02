@@ -319,7 +319,9 @@ func gitGlobRe(s string) *regexp.Regexp {
 	}
 
 	re, err := regexp.Compile(pat.String())
-	errhandle(fmt.Errorf("can't parse pattern '%s': %s", s, err), false)
+	if err != nil {
+		errhandle(fmt.Errorf("can't parse pattern '%s': %s", s, err), false)
+	}
 	return re
 }
 

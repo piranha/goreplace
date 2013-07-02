@@ -80,6 +80,9 @@ supported as replacement, no regexp submatch support yet (planned, though).
 
 ## Changelog
 
+ - 1.6
+   - Add option to not colorize output
+   - Remove false error reporting about parsing .gitmodules
  - 1.5
    - Fix deadlock when stumbling around a pile of unreadable files (a lot of
      symlinks pointing nowhere, for example)
