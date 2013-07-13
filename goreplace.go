@@ -15,7 +15,7 @@ import (
 
 const (
 	Author  = "Alexander Solovyov"
-	Version = "1.6"
+	Version = "1.7"
 )
 var byteNewLine = []byte("\n")
 
@@ -194,8 +194,10 @@ func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
 	if changed {
 		f.Seek(0, 0)
 		n, err := f.Write(result)
-		errhandle(fmt.Errorf("Error writing replacement to file '%s': %s",
-			fn, err), true)
+		if err != nil {
+			errhandle(fmt.Errorf("Error writing replacement to file '%s': %s",
+				fn, err), true)
+		}
 		if int64(n) < fi.Size() {
 			err := f.Truncate(int64(n))
 			if err != nil {

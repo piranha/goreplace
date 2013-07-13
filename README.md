@@ -80,6 +80,9 @@ supported as replacement, no regexp submatch support yet (planned, though).
 
 ## Changelog
 
+ - 1.7
+   - Remove false error reporting about not being able to replace. I'm sorry for
+     messing this up
  - 1.6
    - Add option to not colorize output
    - Remove false error reporting about parsing .gitmodules
