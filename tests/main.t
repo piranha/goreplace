@@ -30,6 +30,7 @@ Usage:
                             files)
     -V, --version           show version and exit
         --help              show this help message
+    -c, --no-colors         do not show colors in output
 
 Find a string in a file:
 
