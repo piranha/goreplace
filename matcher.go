@@ -33,7 +33,7 @@ func NewMatcher(wd string, noIgnores bool) Matcher {
 	}
 
 	for !noIgnores {
-		if filepath.Dir(path) == path {
+		if filepath.Dir(path) == path { // top directory
 			break
 		}
 
@@ -44,11 +44,6 @@ func NewMatcher(wd string, noIgnores bool) Matcher {
 		if dirExists(filepath.Join(path, ".git")) {
 			return NewGitMatcher(wd, filepath.Join(path, ".gitignore"))
 		}
-
-		// f, err = os.Open(filepath.Join(path, ".git"))
-		// if err == nil {
-		// 	return NewGitMatcher(wd, f)
-		// }
 
 		path = filepath.Clean(filepath.Join(path, ".."))
 	}
@@ -369,6 +364,11 @@ func NewGitMatcher(wd string, fp string) *GitMatcher {
 }
 
 func (i *GitMatcher) Match(fn string, isdir bool) bool {
+	// no point in ignore whole current directory
+	if fn == "." {
+		return false
+	}
+
 	path := fmt.Sprintf(".%c", filepath.Separator) + filepath.Join(i.prefix, fn)
 	base := filepath.Base(path)
 

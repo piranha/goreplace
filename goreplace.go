@@ -15,7 +15,7 @@ import (
 
 const (
 	Author  = "Alexander Solovyov"
-	Version = "1.7"
+	Version = "1.8"
 )
 var byteNewLine = []byte("\n")
 

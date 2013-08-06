@@ -72,3 +72,14 @@ Check that anchored directories are properly ignored:
   $ gr test
   $ cd ..
 
+Check that .* matches only files starting with dot:
+
+  $ mkdir dotstar && cd dotstar
+  $ mkdir .git
+  $ echo '.*' > .gitignore
+  $ echo qwe > .ignore
+  $ echo qwe > notignore
+  $ gr qwe
+  notignore
+  1:qwe
+  $ cd ..

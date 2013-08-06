@@ -82,6 +82,9 @@ supported as replacement, no regexp submatch support yet (planned, though).
 
 ## Changelog
 
+ - 1.8
+   - Fix `.*` handling in `.gitignore` (it actually matched `.` and ignored
+     absolutely everything)
  - 1.7
    - Remove false error reporting about not being able to replace. I'm sorry for
      messing this up
