@@ -35,12 +35,17 @@ This is my reason to use it - less latency doing task I'm doing often.
 
 Binary builds:
 
- - [Linux 64 bit](http://solovyov.net/files/gr-64-linux)
- - [Linux 32 bit](http://solovyov.net/files/gr-32-linux)
- - [OS X 64 bit](http://solovyov.net/files/gr-64-osx)
- - [OS X 32 bit](http://solovyov.net/files/gr-32-osx)
- - [Windows 64 bit](http://solovyov.net/files/gr-64-win.exe)
- - [Windows 32 bit](http://solovyov.net/files/gr-32-win.exe)
+| Linux         | OS X          | Windows       |
+|:--------------|:--------------|:--------------|
+| [64 bit][l64] | [64 bit][x64] | [64 bit][w64] |
+| [32 bit][l32] | [32 bit][x32] | [32 bit][w32] |
+
+[l64]: http://solovyov.net/files/gr-64-linux
+[l32]: http://solovyov.net/files/gr-32-linux
+[x64]: http://solovyov.net/files/gr-64-osx
+[x32]: http://solovyov.net/files/gr-32-osx
+[w64]: http://solovyov.net/files/gr-64-win.exe
+[w32]: http://solovyov.net/files/gr-32-win.exe
 
 It's suited to be installed via `go` tool, so you can do usual thing:
 
