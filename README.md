@@ -14,6 +14,8 @@ Bonus:
 
  - Can search in file names (i.e. a simple alternative to `find`)
 
+[![Build Status](https://travis-ci.org/piranha/goreplace.png)](https://travis-ci.org/piranha/goreplace)
+
 ## Why
 
 Why do thing which is done by grep, find, and sed? Well, for one - I grew tired
