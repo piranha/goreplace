@@ -1,16 +1,14 @@
 Go Replace tests:
 
-  $ go build goreplace
+  $ go build -o gr github.com/piranha/goreplace || go build -o gr goreplace
   $ CURRENT=$(pwd)
-  $ gr () {
-  > $CURRENT/goreplace $@ | perl -pe 's/\e\[?.*?[\@-~]//g'
-  > }
+  $ alias gr="$CURRENT/gr -c"
 
 Usage:
 
   $ gr
   Usage:
-    goreplace [OPTIONS] string-to-search
+    gr [OPTIONS] string-to-search
   
   General ignorer
   
