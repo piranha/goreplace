@@ -1,6 +1,6 @@
 Go Replace tests:
 
-  $ go build -o gr github.com/piranha/goreplace || go build -o gr goreplace
+  $ go build -o gr goreplace || go build -o gr github.com/piranha/goreplace
   $ CURRENT=$(pwd)
   $ alias gr="$CURRENT/gr -c"
 
