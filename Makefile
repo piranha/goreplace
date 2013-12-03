@@ -1,5 +1,6 @@
 SOURCE = $(wildcard *.go)
 TAG = $(shell git describe --tags)
+GOBUILD = go build -ldflags '-w'
 
 ALL = \
 	$(foreach arch,32 64,\
@@ -22,11 +23,11 @@ win.exe = windows
 osx = darwin
 build/gr-$(TAG)-64-%: $(SOURCE)
 	@mkdir -p $(@D)
-	CGO_ENABLED=0 GOOS=$(firstword $($*) $*) GOARCH=amd64 go build -o $@
+	CGO_ENABLED=0 GOOS=$(firstword $($*) $*) GOARCH=amd64 $(GOBUILD) -o $@
 
 build/gr-$(TAG)-32-%: $(SOURCE)
 	@mkdir -p $(@D)
-	CGO_ENABLED=0 GOOS=$(firstword $($*) $*) GOARCH=386 go build -o $@
+	CGO_ENABLED=0 GOOS=$(firstword $($*) $*) GOARCH=386 $(GOBUILD) -o $@
 
 build/gr-%: build/gr-$(TAG)-%
 	@mkdir -p $(@D)
