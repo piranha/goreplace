@@ -87,6 +87,10 @@ supported as replacement, no regexp submatch support yet (planned, though).
 
 ## Changelog
 
+ - 1.10
+   - Fix reading escapes (like `\n`) from command line
+ - 1.9
+   - Treat `$1` in replacement strings as groups
  - 1.8
    - Fix `.*` handling in `.gitignore` (it actually matched `.` and ignored
      absolutely everything)

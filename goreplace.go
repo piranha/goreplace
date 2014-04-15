@@ -11,11 +11,12 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 )
 
 const (
 	Author  = "Alexander Solovyov"
-	Version = "1.9"
+	Version = "1.10"
 )
 
 var byteNewLine = []byte("\n")
@@ -90,6 +91,14 @@ func main() {
 
 	if pattern.Match([]byte("")) {
 		errhandle(fmt.Errorf("Your pattern matches empty string"), true)
+	}
+
+	if opts.Replace != nil {
+		s, err := strconv.Unquote(`"` + *opts.Replace + `"`)
+		if err != nil {
+			errhandle(err, true)
+		}
+		*opts.Replace = s
 	}
 
 	searchFiles(pattern, ignoreFileMatcher, acceptedFileMatcher)
