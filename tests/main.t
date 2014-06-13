@@ -84,3 +84,15 @@ Check that .* matches only files starting with dot:
   notignore
   1:qwe
   $ cd ..
+
+Check that symlinks are followed:
+
+  $ mkdir symlink && cd symlink
+  $ mkdir source
+  $ echo qwe > source/test
+  $ mkdir target && cd target
+  $ ln -s ../source
+  $ gr qwe
+  source/test
+  1:qwe
+  $ cd ../..

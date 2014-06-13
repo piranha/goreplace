@@ -174,17 +174,28 @@ func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
 	}
 
 	if fi.Size() >= 1024*1024*10 {
-		errhandle(fmt.Errorf("Skipping %s, too big: %d\n", fn, fi.Size()),
+		errhandle(fmt.Errorf("Skipping %s, too big: %d", fn, fi.Size()),
 			false)
 		return
 	}
 
-	// just skip invalid symlinks
 	if fi.Mode()&os.ModeSymlink != 0 {
-		if _, err := os.Stat(fn); err != nil {
+		stat, err := os.Stat(fn)
+
+		// skip invalid symlinks
+		if err != nil {
 			if opts.Verbose {
 				errhandle(err, false)
 			}
+			return
+		}
+
+		// follow symlinks to folders
+		if stat.IsDir() {
+			realpath, err := filepath.EvalSymlinks(fn)
+			errhandle(err, false)
+			err = filepath.Walk(realpath, v.Walk)
+			errhandle(err, false)
 			return
 		}
 	}
@@ -237,7 +248,7 @@ func (v *GRVisitor) GetFileAndContent(fn string, fi os.FileInfo) (f *os.File, co
 	content = make([]byte, fi.Size())
 	n, err := f.Read(content)
 	if err != nil {
-		errhandle(fmt.Errorf("Can't read file '%s': %s", fn), true)
+		errhandle(fmt.Errorf("Can't read file '%s': %s", fn, err), true)
 	}
 	if int64(n) != fi.Size() {
 		errhandle(fmt.Errorf("Not whole file '%s' was read, only %d from %d",
