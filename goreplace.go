@@ -8,6 +8,7 @@ import (
 	"fmt"
 	flags "github.com/jessevdk/go-flags"
 	"github.com/wsxiaoys/terminal/color"
+	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -255,7 +256,19 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 		binary = true
 	}
 
-	for _, info := range v.FindAllIndex(content) {
+	found := v.FindAllIndex(content)
+	idxLength := 1
+
+	for _, info := range found {
+		l := int(math.Ceil(math.Log10(float64(info.num))))
+		if l > idxLength {
+			idxLength = l
+		}
+	}
+
+	idxFmt := fmt.Sprintf("%%%dd:", idxLength)
+
+	for _, info := range found {
 		if lines.Contains(info.num) {
 			continue
 		}
@@ -286,9 +299,9 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 		}
 
 		if !opts.NoColors {
-			color.Printf("@!@y%d:", info.num)
+			color.Printf("@!@y" + idxFmt, info.num)
 		} else {
-			fmt.Printf("%d:", info.num)
+			fmt.Printf(idxFmt, info.num)
 		}
 		colored := v.pattern.ReplaceAllStringFunc(string(info.line),
 			func(wrap string) string {
