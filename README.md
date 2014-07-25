@@ -26,7 +26,7 @@ history and add a replacement string', much simpler!
 
 Besides, it's also faster than grep! Hard to believe, and it's a bit of cheating -
 but gr by default ignores everything you have in your `.hgignore` and
-`.gitignore` files, skipping binary builds and compiled byte-codes (which you
+`.gitignore` files, skipping binary files and compiled bytecodes (which you
 usually don't want to touch anyway).
 
 This is my reason to use it - less latency doing task I'm doing often.
