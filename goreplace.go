@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 )
 
@@ -21,6 +22,7 @@ const (
 )
 
 var byteNewLine = []byte("\n")
+var NoColors = false
 
 var opts struct {
 	Replace         *string  `short:"r" long:"replace" description:"replace found substrings with RE" value-name:"RE"`
@@ -51,6 +53,8 @@ func main() {
 		fmt.Printf("goreplace %s\n", Version)
 		return
 	}
+
+	NoColors = opts.NoColors || runtime.GOOS == "windows"
 
 	var noIgnores bool
 	for _, item := range os.Args[1:] {
@@ -286,10 +290,10 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 				fmt.Printf("Binary file '%s' matches", fn)
 				break
 			} else {
-				if !opts.NoColors {
-					color.Printf("@g%s\n", fn)
-				} else {
+				if NoColors {
 					fmt.Printf("%s\n", fn)
+				} else {
+					color.Printf("@g%s\n", fn)
 				}
 			}
 		}
@@ -298,18 +302,18 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 			return
 		}
 
-		if !opts.NoColors {
-			color.Printf("@!@y" + idxFmt, info.num)
-		} else {
+		if NoColors {
 			fmt.Printf(idxFmt, info.num)
+		} else {
+			color.Printf("@!@y" + idxFmt, info.num)
 		}
 		colored := v.pattern.ReplaceAllStringFunc(string(info.line),
 			func(wrap string) string {
 				var res string
-				if !opts.NoColors {
-					res = color.Sprintf("@Y%s", wrap)
-				} else {
+				if NoColors {
 					res = fmt.Sprintf("%s", wrap)
+				} else {
+					res = color.Sprintf("@Y%s", wrap)
 				}
 				return res
 			})
@@ -328,10 +332,10 @@ func (v *GRVisitor) SearchFileName(fn string) {
 	colored := v.pattern.ReplaceAllStringFunc(fn,
 		func(wrap string) string {
 			var res string
-			if !opts.NoColors {
-				res = color.Sprintf("@Y%s", wrap)
-			} else {
+			if NoColors {
 				res = fmt.Sprintf("%s", wrap)
+			} else {
+				res = color.Sprintf("@Y%s", wrap)
 			}
 			return res
 		})
@@ -372,10 +376,10 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 		}
 		if !changed {
 			changed = true
-			if !opts.NoColors {
-				color.Printf("@g%s", fn)
-			} else {
+			if NoColors {
 				fmt.Printf("%s", fn)
+			} else {
+				color.Printf("@g%s", fn)
 			}
 		}
 
@@ -384,11 +388,11 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 	})
 
 	if changenum > 0 {
-		if !opts.NoColors {
-			color.Printf("@!@y - %d change%s made\n",
+		if NoColors {
+			fmt.Printf(" - %d change%s made\n",
 				changenum, getSuffix(changenum))
 		} else {
-			fmt.Printf(" - %d change%s made\n",
+			color.Printf("@!@y - %d change%s made\n",
 				changenum, getSuffix(changenum))
 		}
 	}
