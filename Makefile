@@ -4,9 +4,8 @@ GOBUILD = go build -ldflags '-w'
 
 ALL = \
 	$(foreach arch,32 64,\
-	$(foreach tag,-$(TAG)- -,\
 	$(foreach suffix,win.exe osx linux,\
-		build/gr$(tag)$(arch)-$(suffix))))
+		build/gr-$(TAG)-$(arch)-$(suffix)))
 
 all: $(ALL)
 
@@ -29,13 +28,17 @@ build/gr-$(TAG)-32-%: $(SOURCE)
 	@mkdir -p $(@D)
 	CGO_ENABLED=0 GOOS=$(firstword $($*) $*) GOARCH=386 $(GOBUILD) -o $@
 
-build/gr-%: build/gr-$(TAG)-%
-	@mkdir -p $(@D)
-	cd $(@D) && ln -sf $(<F) $(@F)
-
-upload: $(ALL)
-ifndef UPLOAD_PATH
-	@echo "Define UPLOAD_PATH to determine where files should be uploaded"
+release: $(ALL)
+ifndef desc
+	@echo "Run it as 'make release desc=tralala'"
 else
-	rsync -l -P $(ALL) $(UPLOAD_PATH)
+	github-release release -u piranha -r goreplace --tag "$(TAG)" --name "$(TAG)" --description "$(desc)"
+	@for x in $(ALL); do \
+		github-release upload -u piranha \
+                              -r goreplace \
+                              --tag "$(TAG)" \
+                              --name "$$(basename $$x)" \
+                              --file "$$x"; \
+		echo "Uploaded $$x"; \
+	done
 endif
