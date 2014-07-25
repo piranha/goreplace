@@ -5,7 +5,7 @@ GOBUILD = go build -ldflags '-w'
 ALL = \
 	$(foreach arch,32 64,\
 	$(foreach suffix,win.exe osx linux,\
-		build/gr-$(TAG)-$(arch)-$(suffix)))
+		build/gr-$(arch)-$(suffix)))
 
 all: $(ALL)
 
@@ -20,11 +20,11 @@ test:
 # suffix itself is taken
 win.exe = windows
 osx = darwin
-build/gr-$(TAG)-64-%: $(SOURCE)
+build/gr-64-%: $(SOURCE)
 	@mkdir -p $(@D)
 	CGO_ENABLED=0 GOOS=$(firstword $($*) $*) GOARCH=amd64 $(GOBUILD) -o $@
 
-build/gr-$(TAG)-32-%: $(SOURCE)
+build/gr-32-%: $(SOURCE)
 	@mkdir -p $(@D)
 	CGO_ENABLED=0 GOOS=$(firstword $($*) $*) GOARCH=386 $(GOBUILD) -o $@
 
@@ -32,13 +32,13 @@ release: $(ALL)
 ifndef desc
 	@echo "Run it as 'make release desc=tralala'"
 else
-	github-release release -u piranha -r goreplace --tag "$(TAG)" --name "$(TAG)" --description "$(desc)"
+	github-release release -u piranha -r goreplace -t "$(TAG)" -n "$(TAG)" --description "$(desc)"
 	@for x in $(ALL); do \
 		github-release upload -u piranha \
                               -r goreplace \
-                              --tag "$(TAG)" \
-                              --name "$$(basename $$x)" \
-                              --file "$$x"; \
-		echo "Uploaded $$x"; \
+                              -t $(TAG) \
+                              -f "$$x" \
+                              -n "$$(basename $$x)" \
+		&& echo "Uploaded $$x"; \
 	done
 endif
