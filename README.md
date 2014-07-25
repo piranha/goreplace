@@ -33,27 +33,19 @@ This is my reason to use it - less latency doing task I'm doing often.
 
 ## Installation
 
-Binary builds:
+Just download a suitable binary from
+[release page](https://github.com/piranha/goreplace/releases). Put this file in
+your `$PATH` and rename it to `gr` to have easier access.
 
-| Linux         | OS X          | Windows       |
-|:--------------|:--------------|:--------------|
-| [64 bit][l64] | [64 bit][x64] | [64 bit][w64] |
-| [32 bit][l32] | [32 bit][x32] | [32 bit][w32] |
+### Building from source
 
-[l64]: http://solovyov.net/files/gr-64-linux
-[l32]: http://solovyov.net/files/gr-32-linux
-[x64]: http://solovyov.net/files/gr-64-osx
-[x32]: http://solovyov.net/files/gr-32-osx
-[w64]: http://solovyov.net/files/gr-64-win.exe
-[w32]: http://solovyov.net/files/gr-32-win.exe
-
-It's suited to be installed via `go` tool, so you can do usual thing:
+You can also install it from source, if that's your thing:
 
     go get github.com/piranha/goreplace
 
 And you should be done. You have to have `$GOPATH` set for this to work (`go`
 will put sources and generated binary there). Add `-u` flag there to update your
-gr.
+`gr`.
 
 I prefer name `gr` to `goreplace`, so I link `gr` somewhere in my path (usually
 in `~/bin`) to `$GOPATH/bin/goreplace`. **NOTE**: if you use `oh-my-zsh`, it
