@@ -1,10 +1,10 @@
 SOURCE = $(wildcard *.go)
-TAG = $(shell git describe --tags)
+TAG ?= $(shell git describe --tags)
 GOBUILD = go build -ldflags '-w'
 
 ALL = \
-	$(foreach arch,32 64,\
-	$(foreach suffix,win.exe osx linux,\
+	$(foreach arch,64 32,\
+	$(foreach suffix,linux osx win.exe,\
 		build/gr-$(arch)-$(suffix)))
 
 all: $(ALL)
