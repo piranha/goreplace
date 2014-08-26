@@ -55,16 +55,8 @@ func main() {
 
 	NoColors = opts.NoColors || runtime.GOOS == "windows"
 
-	var noIgnores bool
-	for _, item := range os.Args[1:] {
-		if item == "-I" || item == "--no-autoignore" {
-			noIgnores = true
-		}
-	}
-
 	cwd, _ := os.Getwd()
-
-	ignoreFileMatcher := NewMatcher(cwd, noIgnores)
+	ignoreFileMatcher := NewMatcher(cwd, opts.NoGlobalIgnores)
 	ignoreFileMatcher.Append(opts.IgnoreFiles)
 
 	acceptedFileMatcher := NewGeneralMatcher([]string{}, []string{})
