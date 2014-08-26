@@ -245,12 +245,7 @@ func (v *GRVisitor) GetFileAndContent(fn string, fi os.FileInfo) (f *os.File, co
 
 func (v *GRVisitor) SearchFile(fn string, content []byte) {
 	lines := IntList([]int{})
-	binary := false
-
-	if bytes.IndexByte(content, 0) != -1 {
-		binary = true
-	}
-
+	binary := bytes.IndexByte(content, 0) != -1
 	found := v.FindAllIndex(content)
 	idxLength := 1
 
@@ -321,10 +316,6 @@ func getSuffix(num int) string {
 }
 
 func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, result []byte) {
-	changed = false
-	binary := false
-	changenum := 0
-
 	if opts.SingleLine {
 		errhandle(fmt.Errorf("Can't handle singleline replacements"),
 			true)
@@ -335,9 +326,9 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 			true)
 	}
 
-	if bytes.IndexByte(content, 0) != -1 {
-		binary = true
-	}
+	changed = false
+	changenum := 0
+	binary := bytes.IndexByte(content, 0) != -1
 
 	result = v.pattern.ReplaceAllFunc(content, func(s []byte) []byte {
 		if binary && !opts.Force {
