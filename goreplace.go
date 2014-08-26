@@ -1,4 +1,4 @@
-// (c) 2011-2013 Alexander Solovyov
+// (c) 2011-2014 Alexander Solovyov
 // under terms of ISC license
 
 package main
@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"fmt"
 	flags "github.com/jessevdk/go-flags"
-	"github.com/wsxiaoys/terminal/color"
 	"math"
 	"os"
 	"path/filepath"
@@ -290,11 +289,7 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 				fmt.Printf("Binary file '%s' matches", fn)
 				break
 			} else {
-				if NoColors {
-					fmt.Printf("%s\n", fn)
-				} else {
-					color.Printf("@g%s\n", fn)
-				}
+				ColorPrintf("@g%s\n", "%s\n", fn)
 			}
 		}
 
@@ -302,20 +297,10 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 			return
 		}
 
-		if NoColors {
-			fmt.Printf(idxFmt, info.num)
-		} else {
-			color.Printf("@!@y" + idxFmt, info.num)
-		}
+		ColorPrintf("@!@y" + idxFmt, idxFmt, info.num)
 		colored := v.pattern.ReplaceAllStringFunc(string(info.line),
 			func(wrap string) string {
-				var res string
-				if NoColors {
-					res = fmt.Sprintf("%s", wrap)
-				} else {
-					res = color.Sprintf("@Y%s", wrap)
-				}
-				return res
+				return ColorSprintf("@Y%s", "%s", wrap)
 			})
 		fmt.Println(colored)
 	}
@@ -331,13 +316,7 @@ func (v *GRVisitor) SearchFileName(fn string) {
 	}
 	colored := v.pattern.ReplaceAllStringFunc(fn,
 		func(wrap string) string {
-			var res string
-			if NoColors {
-				res = fmt.Sprintf("%s", wrap)
-			} else {
-				res = color.Sprintf("@Y%s", wrap)
-			}
-			return res
+			return ColorSprintf("@Y%s", "%s", wrap)
 		})
 	fmt.Println(colored)
 }
@@ -376,11 +355,7 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 		}
 		if !changed {
 			changed = true
-			if NoColors {
-				fmt.Printf("%s", fn)
-			} else {
-				color.Printf("@g%s", fn)
-			}
+			ColorPrintf("@g%s", "%s", fn)
 		}
 
 		changenum += 1
@@ -388,13 +363,8 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 	})
 
 	if changenum > 0 {
-		if NoColors {
-			fmt.Printf(" - %d change%s made\n",
-				changenum, getSuffix(changenum))
-		} else {
-			color.Printf("@!@y - %d change%s made\n",
-				changenum, getSuffix(changenum))
-		}
+		ColorPrintf("@!@y - %d change%s made\n", " - %d change%s made\n",
+			changenum, getSuffix(changenum))
 	}
 
 	return changed, result

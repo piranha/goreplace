@@ -1,4 +1,4 @@
-// (c) 2011-2013 Alexander Solovyov
+// (c) 2011-2014 Alexander Solovyov
 // under terms of ISC license
 
 package main
