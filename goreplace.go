@@ -247,15 +247,14 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 	lines := IntList([]int{})
 	binary := bytes.IndexByte(content, 0) != -1
 	found := v.FindAllIndex(content)
-	idxLength := 1
 
+	maxVal := 0
 	for _, info := range found {
-		l := int(math.Ceil(math.Log10(float64(info.num))))
-		if l > idxLength {
-			idxLength = l
+		if info.num > maxVal {
+			maxVal = info.num
 		}
 	}
-
+	idxLength := int(math.Ceil(math.Log10(float64(maxVal))))
 	idxFmt := fmt.Sprintf("%%%dd:", idxLength)
 
 	for _, info := range found {
