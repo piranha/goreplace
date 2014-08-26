@@ -115,7 +115,7 @@ func searchFiles(pattern *regexp.Regexp, ignoreFileMatcher Matcher,
 	acceptedFileMatcher Matcher) {
 
 	printer := &Printer{NoColors: NoColors}
-	v := &GRVisitor{printer, pattern, ignoreFileMatcher, acceptedFileMatcher, false}
+	v := &GRVisitor{printer, pattern, ignoreFileMatcher, acceptedFileMatcher}
 
 	err := filepath.Walk(".", v.Walk)
 	errhandle(err, false)
@@ -245,7 +245,7 @@ func (v *GRVisitor) GetFileAndContent(fn string, fi os.FileInfo) (f *os.File, co
 }
 
 func (v *GRVisitor) SearchFile(fn string, content []byte) {
-	lines := IntList([]int{})
+	seen := NewIntSet()
 	binary := bytes.IndexByte(content, 0) != -1
 	found := v.FindAllIndex(content)
 
@@ -259,7 +259,7 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 	idxFmt := fmt.Sprintf("%%%dd:", idxLength)
 
 	for _, info := range found {
-		if lines.Contains(info.num) {
+		if !seen.Add(info.num) {
 			continue
 		}
 
@@ -272,8 +272,6 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 			v.printer.Printf("@g%s\n", "%s\n", fn)
 			return
 		}
-
-		lines = append(lines, info.num)
 
 		v.printer.FilePrintf(fn, "@!@y" + idxFmt, idxFmt, info.num)
 		colored := v.pattern.ReplaceAllStringFunc(string(info.line),
@@ -400,13 +398,16 @@ func beginend(s []byte, start int, finish int) (begin int, end int) {
 	return begin, end
 }
 
-type IntList []int
+type IntSet struct {
+    set map[int]bool
+}
 
-func (il IntList) Contains(i int) bool {
-	for _, x := range il {
-		if x == i {
-			return true
-		}
-	}
-	return false
+func NewIntSet() *IntSet {
+	return &IntSet{make(map[int]bool)}
+}
+
+func (set *IntSet) Add(i int) bool {
+    _, found := set.set[i]
+    set.set[i] = true
+    return !found   // False if it existed already
 }
