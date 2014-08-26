@@ -8,16 +8,22 @@ import (
 	"github.com/wsxiaoys/terminal/color"
 )
 
-func ColorPrintf(colorfmt, plainfmt string, args... interface{}) {
-	if NoColors {
+type Printer struct {
+	NoColors bool
+}
+
+func (p *Printer) Printf(colorfmt, plainfmt string, args... interface{}) {
+	if p.NoColors {
 		fmt.Printf(plainfmt, args...)
 	} else {
 		color.Printf(colorfmt, args...)
 	}
 }
 
-func ColorSprintf(colorfmt, plainfmt string, args... interface{}) string {
-	if NoColors {
+func (p *Printer) Sprintf(colorfmt, plainfmt string,
+	args... interface{}) string {
+
+	if p.NoColors {
 		return fmt.Sprintf(plainfmt, args...)
 	} else {
 		return color.Sprintf(colorfmt, args...)

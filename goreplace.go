@@ -113,13 +113,16 @@ func errhandle(err error, exit bool) bool {
 
 func searchFiles(pattern *regexp.Regexp, ignoreFileMatcher Matcher,
 	acceptedFileMatcher Matcher) {
-	v := &GRVisitor{pattern, ignoreFileMatcher, acceptedFileMatcher, false}
+
+	printer := &Printer{NoColors: NoColors}
+	v := &GRVisitor{printer, pattern, ignoreFileMatcher, acceptedFileMatcher, false}
 
 	err := filepath.Walk(".", v.Walk)
 	errhandle(err, false)
 }
 
 type GRVisitor struct {
+	printer             *Printer
 	pattern             *regexp.Regexp
 	ignoreFileMatcher   Matcher
 	acceptedFileMatcher Matcher
@@ -267,26 +270,27 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 			v.prependNewLine = false
 		}
 
+		if binary && !opts.OnlyName {
+			fmt.Printf("Binary file '%s' matches", fn)
+			return
+		}
+
+		if opts.OnlyName {
+			v.printer.Printf("@g%s\n", "%s\n", fn)
+			return
+		}
+
 		first := len(lines) == 0
 		lines = append(lines, info.num)
 
 		if first {
-			if binary && !opts.OnlyName {
-				fmt.Printf("Binary file '%s' matches", fn)
-				break
-			} else {
-				ColorPrintf("@g%s\n", "%s\n", fn)
-			}
+			v.printer.Printf("@g%s\n", "%s\n", fn)
 		}
 
-		if opts.OnlyName {
-			return
-		}
-
-		ColorPrintf("@!@y" + idxFmt, idxFmt, info.num)
+		v.printer.Printf("@!@y" + idxFmt, idxFmt, info.num)
 		colored := v.pattern.ReplaceAllStringFunc(string(info.line),
 			func(wrap string) string {
-				return ColorSprintf("@Y%s", "%s", wrap)
+				return v.printer.Sprintf("@Y%s", "%s", wrap)
 			})
 		fmt.Println(colored)
 	}
@@ -302,7 +306,7 @@ func (v *GRVisitor) SearchFileName(fn string) {
 	}
 	colored := v.pattern.ReplaceAllStringFunc(fn,
 		func(wrap string) string {
-			return ColorSprintf("@Y%s", "%s", wrap)
+			return v.printer.Sprintf("@Y%s", "%s", wrap)
 		})
 	fmt.Println(colored)
 }
@@ -337,7 +341,7 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 		}
 		if !changed {
 			changed = true
-			ColorPrintf("@g%s", "%s", fn)
+			v.printer.Printf("@g%s", "%s", fn)
 		}
 
 		changenum += 1
@@ -345,7 +349,7 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 	})
 
 	if changenum > 0 {
-		ColorPrintf("@!@y - %d change%s made\n", " - %d change%s made\n",
+		v.printer.Printf("@!@y - %d change%s made\n", " - %d change%s made\n",
 			changenum, getSuffix(changenum))
 	}
 
