@@ -242,7 +242,7 @@ func (v *GRVisitor) GetFileAndContent(fn string, fi os.FileInfo) (f *os.File, co
 	content = make([]byte, fi.Size())
 	n, err := f.Read(content)
 	if err != nil {
-		errhandle(fmt.Errorf("Can't read file '%s': %s", fn), true)
+		errhandle(fmt.Errorf("Error %s", err), true)
 	}
 	if int64(n) != fi.Size() {
 		errhandle(fmt.Errorf("Not whole file '%s' was read, only %d from %d",
@@ -355,12 +355,12 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 	changenum := 0
 
 	if opts.SingleLine {
-		errhandle(fmt.Errorf("Can't handle singleline replacements yet"),
+		errhandle(fmt.Errorf("Can't handle singleline replacements"),
 			true)
 	}
 
 	if opts.PlainText {
-		errhandle(fmt.Errorf("Can't handle plain text replacements yet"),
+		errhandle(fmt.Errorf("Can't handle plain text replacements"),
 			true)
 	}
 
