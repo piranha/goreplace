@@ -28,6 +28,7 @@ Usage:
     -v, --verbose           be verbose (show non-fatal errors, like unreadable
                             files)
     -c, --no-colors         do not show colors in output
+    -N, --no-group          print file name before each line
     -V, --version           show version and exit
     -h, --help              show this help message
 

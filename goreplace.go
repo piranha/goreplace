@@ -17,7 +17,7 @@ import (
 
 const (
 	Author  = "Alexander Solovyov"
-	Version = "1.12"
+	Version = "2.0"
 )
 
 var byteNewLine = []byte("\n")
@@ -36,6 +36,7 @@ var opts struct {
 	OnlyName        bool     `short:"n" long:"filename" description:"print only filenames"`
 	Verbose         bool     `short:"v" long:"verbose" description:"be verbose (show non-fatal errors, like unreadable files)"`
 	NoColors        bool     `short:"c" long:"no-colors" description:"do not show colors in output"`
+	NoGroup         bool     `short:"N" long:"no-group" description:"print file name before each line"`
 	ShowVersion     bool     `short:"V" long:"version" description:"show version and exit"`
 	ShowHelp        bool     `short:"h" long:"help" description:"show this help message"`
 }
@@ -114,7 +115,7 @@ func errhandle(err error, exit bool) bool {
 func searchFiles(pattern *regexp.Regexp, ignoreFileMatcher Matcher,
 	acceptedFileMatcher Matcher) {
 
-	printer := &Printer{NoColors: NoColors}
+	printer := &Printer{NoColors, opts.NoGroup, ""}
 	v := &GRVisitor{printer, pattern, ignoreFileMatcher, acceptedFileMatcher}
 
 	err := filepath.Walk(".", v.Walk)
@@ -249,15 +250,18 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 	seen := NewIntSet()
 	binary := bytes.IndexByte(content, 0) != -1
 	found := v.FindAllIndex(content)
+	idxFmt := "%d:"
 
-	maxVal := 0
-	for _, info := range found {
-		if info.num > maxVal {
-			maxVal = info.num
+	if !opts.NoGroup {
+		maxVal := 0
+		for _, info := range found {
+			if info.num > maxVal {
+				maxVal = info.num
+			}
 		}
+		idxLength := int(math.Ceil(math.Log10(float64(maxVal))))
+		idxFmt = fmt.Sprintf("%%%dd:", idxLength)
 	}
-	idxLength := int(math.Ceil(math.Log10(float64(maxVal))))
-	idxFmt := fmt.Sprintf("%%%dd:", idxLength)
 
 	for _, info := range found {
 		if !seen.Add(info.num) {
@@ -274,12 +278,15 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 			return
 		}
 
-		v.printer.FilePrintf(fn, "@!@y" + idxFmt, idxFmt, info.num)
 		colored := v.pattern.ReplaceAllStringFunc(string(info.line),
 			func(wrap string) string {
 				return v.printer.Sprintf("@Y%s", "%s", wrap)
 			})
-		fmt.Println(colored)
+
+		v.printer.FilePrintf(fn,
+			"@!@y" + idxFmt + "@|" + colored + "\n",
+			idxFmt + colored + "\n",
+			info.num)
 	}
 }
 
