@@ -234,7 +234,8 @@ func (v *GRVisitor) GetFileAndContent(fn string, fi os.FileInfo) (f *os.File, co
 	content = make([]byte, fi.Size())
 	n, err := f.Read(content)
 	if err != nil {
-		errhandle(fmt.Errorf("Error %s", err), true)
+		errhandle(fmt.Errorf("Error %s", err), false)
+		return
 	}
 	if int64(n) != fi.Size() {
 		errhandle(fmt.Errorf("Not whole file '%s' was read, only %d from %d",
