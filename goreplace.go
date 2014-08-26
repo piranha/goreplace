@@ -127,8 +127,6 @@ type GRVisitor struct {
 	ignoreFileMatcher   Matcher
 	acceptedFileMatcher Matcher
 	// errors              chan error
-	// Used to prevent sparse newline at the end of output
-	prependNewLine bool
 }
 
 func (v *GRVisitor) Walk(fn string, fi os.FileInfo, err error) error {
@@ -265,11 +263,6 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 			continue
 		}
 
-		if v.prependNewLine {
-			fmt.Println("")
-			v.prependNewLine = false
-		}
-
 		if binary && !opts.OnlyName {
 			fmt.Printf("Binary file '%s' matches", fn)
 			return
@@ -280,23 +273,14 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 			return
 		}
 
-		first := len(lines) == 0
 		lines = append(lines, info.num)
 
-		if first {
-			v.printer.Printf("@g%s\n", "%s\n", fn)
-		}
-
-		v.printer.Printf("@!@y" + idxFmt, idxFmt, info.num)
+		v.printer.FilePrintf(fn, "@!@y" + idxFmt, idxFmt, info.num)
 		colored := v.pattern.ReplaceAllStringFunc(string(info.line),
 			func(wrap string) string {
 				return v.printer.Sprintf("@Y%s", "%s", wrap)
 			})
 		fmt.Println(colored)
-	}
-
-	if len(lines) > 0 {
-		v.prependNewLine = true
 	}
 }
 

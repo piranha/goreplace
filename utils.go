@@ -10,9 +10,26 @@ import (
 
 type Printer struct {
 	NoColors bool
+	previous string
 }
 
-func (p *Printer) Printf(colorfmt, plainfmt string, args... interface{}) {
+func (p *Printer) FilePrintf(fn, colorfmt, plainfmt string,
+	args... interface{}) {
+
+	if fn != p.previous {
+		if p.previous != "" {
+			fmt.Println("")
+		}
+		p.Printf("@g%s\n", "%s\n", fn)
+		p.previous = fn
+	}
+
+	p.Printf(colorfmt, plainfmt, args...)
+}
+
+func (p *Printer) Printf(colorfmt, plainfmt string,
+	args... interface{}) {
+
 	if p.NoColors {
 		fmt.Printf(plainfmt, args...)
 	} else {
