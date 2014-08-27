@@ -76,5 +76,7 @@ And to replace:
     gr somestring -r replacement
 
 It's performed in place and no backups are made (not that you need them, right?
-You're using version control, aren't you?). Unfortunately only plain strings are
-supported as replacement, no regexp submatch support yet (planned, though).
+You're using version control, aren't you?). Regular expression submatches
+supported via `$1` syntax - see
+[re2 documentation](https://code.google.com/p/re2/wiki/Syntax) for more
+information about syntax and capabilities.
