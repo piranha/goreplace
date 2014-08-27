@@ -73,7 +73,7 @@ arguments to see help message - it contains information about them.
 
 And to replace:
 
-    gr somestring -r replacement.
+    gr somestring -r replacement
 
 It's performed in place and no backups are made (not that you need them, right?
 You're using version control, aren't you?). Unfortunately only plain strings are
