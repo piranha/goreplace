@@ -12,9 +12,11 @@ something, possibly replace this with something else. Main points:
 
 Bonus:
 
- - Can search in file names (i.e. a simple alternative to `find`)
+ - Can search in file names with `-f` (i.e. a simple alternative to `find`)
 
 [![Build Status](https://travis-ci.org/piranha/goreplace.png)](https://travis-ci.org/piranha/goreplace)
+
+[Releases and changelog](https://github.com/piranha/goreplace/releases)
 
 ## Why
 
@@ -76,49 +78,3 @@ And to replace:
 It's performed in place and no backups are made (not that you need them, right?
 You're using version control, aren't you?). Unfortunately only plain strings are
 supported as replacement, no regexp submatch support yet (planned, though).
-
-## Changelog
-
- - 1.10
-   - Fix reading escapes (like `\n`) from command line
- - 1.9
-   - Treat `$1` in replacement strings as groups
- - 1.8
-   - Fix `.*` handling in `.gitignore` (it actually matched `.` and ignored
-     absolutely everything)
- - 1.7
-   - Remove false error reporting about not being able to replace. I'm sorry for
-     messing this up
- - 1.6
-   - Add option to not colorize output
-   - Remove false error reporting about parsing .gitmodules
- - 1.5
-   - Fix deadlock when stumbling around a pile of unreadable files (a lot of
-     symlinks pointing nowhere, for example)
- - 1.4
-   - Fix skipping big files when searching only in file names
- - 1.3
-   - Fix stack trace dump on Linux when file is not readable
- - 1.2
-   - `.gitignore` fixes will never end it seems, another one
- - 1.1
-   - Another `.gitignore` improvement
- - 1.0
-   - Option `-f`/`--find-files` - search for files by their names
-   - `.gitignore` support improved
- - 0.5.2
-   - `-r` now can accept empty string
- - 0.5.1
-   - Fixed display bug when searching for obscure regexp
- - 0.5.0
-   - `-o`/`--only` option  - include only files specified (thanks to Vignesh
-     Sarma)
-   - Fixed support of recursive `*` in `.gitignore`
- - 0.4.3
-   - Make ignorers cross-platform (fixed them for windows)
- - 0.4.2
-   - Cleanup error reporting
- - 0.4.1
-   - Hide non-fatal errors by default
- - 0.4.0
-   - Option for plain-text searching
