@@ -34,11 +34,11 @@ ifndef desc
 else
 	github-release release -u piranha -r goreplace -t "$(TAG)" -n "$(TAG)" --description "$(desc)"
 	@for x in $(ALL); do \
+		echo "Uploading $$x" && \
 		github-release upload -u piranha \
                               -r goreplace \
                               -t $(TAG) \
                               -f "$$x" \
-                              -n "$$(basename $$x)" \
-		&& echo "Uploaded $$x"; \
+                              -n "$$(basename $$x)"; \
 	done
 endif
