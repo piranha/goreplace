@@ -17,7 +17,7 @@ import (
 
 const (
 	Author  = "Alexander Solovyov"
-	Version = "2.0"
+	Version = "2.1"
 )
 
 var byteNewLine = []byte("\n")
@@ -29,8 +29,8 @@ var opts struct {
 	IgnoreCase      bool     `short:"i" long:"ignore-case" description:"ignore pattern case"`
 	SingleLine      bool     `short:"s" long:"singleline" description:"match single line (^/$ will match beginning/end of line)"`
 	PlainText       bool     `short:"p" long:"plain" description:"treat pattern as plain text"`
-	IgnoreFiles     []string `short:"x" long:"exclude" description:"exclude files with names that match regexp RE from search" value-name:"RE"`
-	AcceptFiles     []string `short:"o" long:"only" description:"search only in files with names that match regexp RE" value-name:"RE"`
+	IgnoreFiles     []string `short:"x" long:"exclude" description:"exclude files with names that match regexp RE from search (multi)" value-name:"RE"`
+	AcceptFiles     []string `short:"o" long:"only" description:"search only in files with names that match regexp RE (multi)" value-name:"RE"`
 	NoGlobalIgnores bool     `short:"I" long:"no-autoignore" description:"do not read .git/.hgignore files"`
 	FindFiles       bool     `short:"f" long:"find-files" description:"search in file names"`
 	OnlyName        bool     `short:"n" long:"filename" description:"print only filenames"`
@@ -41,9 +41,9 @@ var opts struct {
 	ShowHelp        bool     `short:"h" long:"help" description:"show this help message"`
 }
 
-func main() {
-	argparser := flags.NewParser(&opts, flags.PrintErrors|flags.PassDoubleDash)
+var argparser = flags.NewParser(&opts, flags.PrintErrors|flags.PassDoubleDash)
 
+func main() {
 	args, err := argparser.Parse()
 	if err != nil {
 		os.Exit(1)
