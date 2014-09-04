@@ -82,3 +82,12 @@ Check that .* matches only files starting with dot:
   notignore
   1:qwe
   $ cd ..
+
+Check that percents don't do anything bad:
+
+  $ mkdir percent && cd percent
+  $ echo 'hello %username%' > one
+  $ gr user
+  one
+  1:hello %username%
+  $ cd ..

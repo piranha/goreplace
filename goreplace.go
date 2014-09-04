@@ -17,7 +17,7 @@ import (
 
 const (
 	Author  = "Alexander Solovyov"
-	Version = "2.2"
+	Version = "2.3"
 )
 
 var byteNewLine = []byte("\n")
@@ -284,9 +284,10 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 			})
 
 		v.printer.FilePrintf(fn,
-			"@!@y" + idxFmt + "@|" + colored + "\n",
-			idxFmt + colored + "\n",
-			info.num)
+			"@!@y" + idxFmt + "@|%s\n",
+			idxFmt + "%s\n",
+			info.num,
+			colored)
 	}
 }
 
