@@ -27,14 +27,14 @@ var opts struct {
 	Replace         *string  `short:"r" long:"replace" description:"replace found substrings with RE" value-name:"RE"`
 	Force           bool     `short:""  long:"force" description:"force replacement in binary files"`
 	IgnoreCase      bool     `short:"i" long:"ignore-case" description:"ignore pattern case"`
-	SingleLine      bool     `short:"s" long:"singleline" description:"match single line (^/$ will match beginning/end of line)"`
+	SingleLine      bool     `short:"s" long:"singleline" description:"^/$ will match beginning/end of line"`
 	PlainText       bool     `short:"p" long:"plain" description:"treat pattern as plain text"`
-	IgnoreFiles     []string `short:"x" long:"exclude" description:"exclude files with names that match regexp RE from search (multi)" value-name:"RE"`
-	AcceptFiles     []string `short:"o" long:"only" description:"search only in files with names that match regexp RE (multi)" value-name:"RE"`
+	IgnoreFiles     []string `short:"x" long:"exclude" description:"exclude filenames that match regexp RE (multi)" value-name:"RE"`
+	AcceptFiles     []string `short:"o" long:"only" description:"search only filenames that match regexp RE (multi)" value-name:"RE"`
 	NoGlobalIgnores bool     `short:"I" long:"no-autoignore" description:"do not read .git/.hgignore files"`
 	FindFiles       bool     `short:"f" long:"find-files" description:"search in file names"`
 	OnlyName        bool     `short:"n" long:"filename" description:"print only filenames"`
-	Verbose         bool     `short:"v" long:"verbose" description:"be verbose (show non-fatal errors, like unreadable files)"`
+	Verbose         bool     `short:"v" long:"verbose" description:"show non-fatal errors (like unreadable files)"`
 	NoColors        bool     `short:"c" long:"no-colors" description:"do not show colors in output"`
 	NoGroup         bool     `short:"N" long:"no-group" description:"print file name before each line"`
 	ShowVersion     bool     `short:"V" long:"version" description:"show version and exit"`

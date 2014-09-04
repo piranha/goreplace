@@ -16,17 +16,14 @@ Usage:
     -r, --replace=RE        replace found substrings with RE
         --force             force replacement in binary files
     -i, --ignore-case       ignore pattern case
-    -s, --singleline        match single line (^/$ will match beginning/end of
-                            line)
+    -s, --singleline        ^/$ will match beginning/end of line
     -p, --plain             treat pattern as plain text
-    -x, --exclude=RE        exclude files with names that match regexp RE from
-                            search
-    -o, --only=RE           search only in files with names that match regexp RE
+    -x, --exclude=RE        exclude filenames that match regexp RE (multi)
+    -o, --only=RE           search only filenames that match regexp RE (multi)
     -I, --no-autoignore     do not read .git/.hgignore files
     -f, --find-files        search in file names
     -n, --filename          print only filenames
-    -v, --verbose           be verbose (show non-fatal errors, like unreadable
-                            files)
+    -v, --verbose           show non-fatal errors (like unreadable files)
     -c, --no-colors         do not show colors in output
     -N, --no-group          print file name before each line
     -V, --version           show version and exit
