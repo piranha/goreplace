@@ -46,7 +46,7 @@ func main() {
 
 	args, err := argparser.Parse()
 	if err != nil {
-		return
+		os.Exit(1)
 	}
 
 	if opts.ShowVersion {
