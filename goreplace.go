@@ -269,7 +269,7 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 		}
 
 		if binary && !opts.OnlyName {
-			fmt.Printf("Binary file '%s' matches", fn)
+			fmt.Printf("Binary file '%s' matches\n", fn)
 			return
 		}
 
