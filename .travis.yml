@@ -2,5 +2,7 @@ language: go
 go:
   - 1.2
   - tip
-install: "go get . && sudo pip install cram"
-script: "make test"
+install:
+  - go get
+  - sudo pip install cram
+script: make test
