@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	flags "github.com/jessevdk/go-flags"
+	byten "github.com/pyk/byten"
 	"math"
 	"os"
 	"path/filepath"
@@ -172,7 +173,7 @@ func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
 	}
 
 	if fi.Size() >= 1024*1024*10 {
-		errhandle(fmt.Errorf("Skipping %s, too big: %d\n", fn, fi.Size()),
+		errhandle(fmt.Errorf("Skipping %s, too big: %s\n", fn, byten.Size(fi.Size())),
 			false)
 		return
 	}
