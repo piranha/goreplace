@@ -10,12 +10,12 @@ import (
 
 type Printer struct {
 	NoColors bool
-	NoGroup bool
+	NoGroup  bool
 	previous string
 }
 
 func (p *Printer) Printf(colorfmt, plainfmt string,
-	args... interface{}) {
+	args ...interface{}) {
 
 	if p.NoColors {
 		fmt.Printf(plainfmt, args...)
@@ -25,7 +25,7 @@ func (p *Printer) Printf(colorfmt, plainfmt string,
 }
 
 func (p *Printer) Sprintf(colorfmt, plainfmt string,
-	args... interface{}) string {
+	args ...interface{}) string {
 
 	if p.NoColors {
 		return fmt.Sprintf(plainfmt, args...)
@@ -35,7 +35,7 @@ func (p *Printer) Sprintf(colorfmt, plainfmt string,
 }
 
 func (p *Printer) FilePrintf(fn, colorfmt, plainfmt string,
-	args... interface{}) {
+	args ...interface{}) {
 
 	if p.NoGroup {
 		p.Printf("@g%s:", "%s:", fn)
