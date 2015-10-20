@@ -285,8 +285,8 @@ func (v *GRVisitor) SearchFile(fn string, content []byte) {
 			})
 
 		v.printer.FilePrintf(fn,
-			"@!@y" + idxFmt + "@|%s\n",
-			idxFmt + "%s\n",
+			"@!@y"+idxFmt+"@|%s\n",
+			idxFmt+"%s\n",
 			info.num,
 			colored)
 	}
@@ -409,7 +409,7 @@ func beginend(s []byte, start int, finish int) (begin int, end int) {
 }
 
 type IntSet struct {
-    set map[int]bool
+	set map[int]bool
 }
 
 func NewIntSet() *IntSet {
@@ -417,7 +417,7 @@ func NewIntSet() *IntSet {
 }
 
 func (set *IntSet) Add(i int) bool {
-    _, found := set.set[i]
-    set.set[i] = true
-    return !found   // False if it existed already
+	_, found := set.set[i]
+	set.set[i] = true
+	return !found // False if it existed already
 }
