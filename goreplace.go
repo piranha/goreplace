@@ -325,12 +325,14 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 	changenum := 0
 	binary := bytes.IndexByte(content, 0) != -1
 
+	if binary && !opts.Force {
+		errhandle(
+			fmt.Errorf("%s - binary file skipped, supply --force to force change", fn),
+			false)
+		return changed, content
+	}
+
 	result = v.pattern.ReplaceAllFunc(content, func(s []byte) []byte {
-		if binary && !opts.Force {
-			errhandle(
-				fmt.Errorf("supply --force to force change of binary file"),
-				false)
-		}
 		if !changed {
 			changed = true
 			v.printer.Printf("@g%s", "%s", fn)
