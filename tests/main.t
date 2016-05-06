@@ -21,6 +21,7 @@ Usage:
     -x, --exclude=RE        exclude filenames that match regexp RE (multi)
     -o, --only=RE           search only filenames that match regexp RE (multi)
     -I, --no-autoignore     do not read .git/.hgignore files
+    -B, --no-bigignore      do not ignore files bigger than 10M
     -f, --find-files        search in file names
     -n, --filename          print only filenames
     -v, --verbose           show non-fatal errors (like unreadable files)
