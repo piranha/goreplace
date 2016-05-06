@@ -33,6 +33,7 @@ var opts struct {
 	IgnoreFiles     []string `short:"x" long:"exclude" description:"exclude filenames that match regexp RE (multi)" value-name:"RE"`
 	AcceptFiles     []string `short:"o" long:"only" description:"search only filenames that match regexp RE (multi)" value-name:"RE"`
 	NoGlobalIgnores bool     `short:"I" long:"no-autoignore" description:"do not read .git/.hgignore files"`
+	NoBigIgnores    bool     `short:"B" long:"no-bigignore" description:"do not ignore files bigger than 10M"`
 	FindFiles       bool     `short:"f" long:"find-files" description:"search in file names"`
 	OnlyName        bool     `short:"n" long:"filename" description:"print only filenames"`
 	Verbose         bool     `short:"v" long:"verbose" description:"show non-fatal errors (like unreadable files)"`
@@ -172,7 +173,7 @@ func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
 		return
 	}
 
-	if fi.Size() >= 1024*1024*10 {
+	if !opts.NoBigIgnores && fi.Size() >= 1024*1024*10 {
 		errhandle(fmt.Errorf("Skipping %s, too big: %s\n", fn, byten.Size(fi.Size())),
 			false)
 		return
