@@ -10,6 +10,7 @@ Usage:
   Usage:
     gr [OPTIONS] string-to-search
   
+  Ignoring files bigger than 10MB
   General ignorer
   
   Application Options:
@@ -21,7 +22,8 @@ Usage:
     -x, --exclude=RE        exclude filenames that match regexp RE (multi)
     -o, --only=RE           search only filenames that match regexp RE (multi)
     -I, --no-autoignore     do not read .git/.hgignore files
-    -B, --no-bigignore      do not ignore files bigger than 10M
+    -b, --big-file=SIZE     ignore files bigger than SIZE (use suffixes: k, M)
+    -B, --no-bigignore      do not ignore big files at all
     -f, --find-files        search in file names
     -n, --filename          print only filenames
     -v, --verbose           show non-fatal errors (like unreadable files)
