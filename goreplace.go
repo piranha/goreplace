@@ -23,6 +23,7 @@ const (
 
 var byteNewLine = []byte("\n")
 var NoColors = false
+var BigFileSize = int64(10 * 1024 * 1024);
 
 var opts struct {
 	Replace         *string  `short:"r" long:"replace" description:"replace found substrings with RE" value-name:"RE"`
@@ -33,6 +34,8 @@ var opts struct {
 	IgnoreFiles     []string `short:"x" long:"exclude" description:"exclude filenames that match regexp RE (multi)" value-name:"RE"`
 	AcceptFiles     []string `short:"o" long:"only" description:"search only filenames that match regexp RE (multi)" value-name:"RE"`
 	NoGlobalIgnores bool     `short:"I" long:"no-autoignore" description:"do not read .git/.hgignore files"`
+	BigFileSize     *string  `short:"b" long:"big-file" description:"ignore files bigger than SIZE (use suffixes: k, M)" value-name:"SIZE"`
+	NoBigIgnores    bool     `short:"B" long:"no-bigignore" description:"do not ignore big files at all"`
 	FindFiles       bool     `short:"f" long:"find-files" description:"search in file names"`
 	OnlyName        bool     `short:"n" long:"filename" description:"print only filenames"`
 	Verbose         bool     `short:"v" long:"verbose" description:"show non-fatal errors (like unreadable files)"`
@@ -56,6 +59,9 @@ func main() {
 	}
 
 	NoColors = opts.NoColors || runtime.GOOS == "windows"
+	if opts.BigFileSize != nil {
+		BigFileSize = parseFileSize(opts.BigFileSize)
+	}
 
 	cwd, _ := os.Getwd()
 	ignoreFileMatcher := NewMatcher(cwd, opts.NoGlobalIgnores)
@@ -68,8 +74,13 @@ func main() {
 		acceptedFileMatcher.Append([]string{".*"})
 	}
 
-	argparser.Usage = fmt.Sprintf("[OPTIONS] string-to-search\n\n%s",
-		ignoreFileMatcher)
+	ignoreSizeText := fmt.Sprintf("Ignoring files bigger than %s\n",
+		byten.Size(BigFileSize))
+	if opts.NoBigIgnores {
+		ignoreSizeText = ""
+	}
+	argparser.Usage = fmt.Sprintf("[OPTIONS] string-to-search\n\n%s%s",
+		ignoreSizeText, ignoreFileMatcher)
 
 	if opts.ShowHelp || len(args) == 0 {
 		argparser.WriteHelp(os.Stdout)
@@ -111,6 +122,26 @@ func errhandle(err error, exit bool) bool {
 		os.Exit(1)
 	}
 	return true
+}
+
+func parseFileSize(suffixedFileSize *string) int64 {
+	lasti := len(*suffixedFileSize) - 1
+	coef := int64(1)
+
+	switch (*suffixedFileSize)[lasti] {
+	default: lasti = lasti + 1
+	case 'k': coef = 1024
+	case 'K': coef = 1024
+	case 'm': coef = 1024 * 1024
+	case 'M': coef = 1024 * 1024
+	}
+
+	fileSize, err := strconv.ParseInt((*suffixedFileSize)[:lasti], 10, 64)
+	if err != nil {
+		errhandle(err, true)
+	}
+	fileSize *= coef
+	return fileSize
 }
 
 func searchFiles(pattern *regexp.Regexp, ignoreFileMatcher Matcher,
@@ -172,7 +203,7 @@ func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
 		return
 	}
 
-	if fi.Size() >= 1024*1024*10 {
+	if !opts.NoBigIgnores && fi.Size() >= BigFileSize {
 		errhandle(fmt.Errorf("Skipping %s, too big: %s\n", fn, byten.Size(fi.Size())),
 			false)
 		return
