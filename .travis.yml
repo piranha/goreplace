@@ -1,6 +1,6 @@
 language: go
 go:
-  - 1.2
+  - 1.13
   - tip
 install:
   - go get
