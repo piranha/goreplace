@@ -6,14 +6,15 @@ package main
 import (
 	"bytes"
 	"fmt"
-	flags "github.com/jessevdk/go-flags"
-	byten "github.com/pyk/byten"
 	"math"
 	"os"
 	"path/filepath"
 	"regexp"
 	"runtime"
 	"strconv"
+
+	flags "github.com/jessevdk/go-flags"
+	byten "github.com/pyk/byten"
 )
 
 const (
@@ -23,11 +24,12 @@ const (
 
 var byteNewLine = []byte("\n")
 var NoColors = false
-var BigFileSize = int64(10 * 1024 * 1024);
+var BigFileSize = int64(10 * 1024 * 1024)
 
 var opts struct {
 	Replace         *string  `short:"r" long:"replace" description:"replace found substrings with RE" value-name:"RE"`
 	Force           bool     `short:""  long:"force" description:"force replacement in binary files"`
+	DryRun          bool     `short:""  long:"dry-run" description:"prints replacements without modifying files"`
 	IgnoreCase      bool     `short:"i" long:"ignore-case" description:"ignore pattern case"`
 	SingleLine      bool     `short:"s" long:"singleline" description:"^/$ will match beginning/end of line"`
 	PlainText       bool     `short:"p" long:"plain" description:"treat pattern as plain text"`
@@ -129,11 +131,16 @@ func parseFileSize(suffixedFileSize *string) int64 {
 	coef := int64(1)
 
 	switch (*suffixedFileSize)[lasti] {
-	default: lasti = lasti + 1
-	case 'k': coef = 1024
-	case 'K': coef = 1024
-	case 'm': coef = 1024 * 1024
-	case 'M': coef = 1024 * 1024
+	default:
+		lasti = lasti + 1
+	case 'k':
+		coef = 1024
+	case 'K':
+		coef = 1024
+	case 'm':
+		coef = 1024 * 1024
+	case 'M':
+		coef = 1024 * 1024
 	}
 
 	fileSize, err := strconv.ParseInt((*suffixedFileSize)[:lasti], 10, 64)
@@ -149,6 +156,13 @@ func searchFiles(pattern *regexp.Regexp, ignoreFileMatcher Matcher,
 
 	printer := &Printer{NoColors, opts.NoGroup, ""}
 	v := &GRVisitor{printer, pattern, ignoreFileMatcher, acceptedFileMatcher}
+
+	if opts.DryRun {
+		printer.Printf("Searching for: %s\n", "Searching for: %s\n", pattern.String())
+		if opts.Replace != nil {
+			printer.Printf("Replacing with: %s\n", "Replacing with: %s\n", *opts.Replace)
+		}
+	}
 
 	err := filepath.Walk(".", v.Walk)
 	errhandle(err, false)
@@ -231,7 +245,7 @@ func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
 	}
 
 	changed, result := v.ReplaceInFile(fn, content)
-	if changed {
+	if changed && !opts.DryRun {
 		f.Seek(0, 0)
 		n, err := f.Write(result)
 		if err != nil {
@@ -242,7 +256,7 @@ func (v *GRVisitor) VisitFile(fn string, fi os.FileInfo) {
 			err := f.Truncate(int64(n))
 			if err != nil {
 				errhandle(fmt.Errorf("Error truncating file '%s' to size %d",
-					f, n), true)
+					fn, n), true)
 			}
 		}
 	}
@@ -366,15 +380,18 @@ func (v *GRVisitor) ReplaceInFile(fn string, content []byte) (changed bool, resu
 	result = v.pattern.ReplaceAllFunc(content, func(s []byte) []byte {
 		if !changed {
 			changed = true
-			v.printer.Printf("@g%s", "%s", fn)
+			v.printer.Printf("@g%s\n", "%s\n", fn)
 		}
 
 		changenum += 1
-		return v.pattern.ReplaceAll(s, []byte(*opts.Replace))
+		changedTo := v.pattern.ReplaceAll(s, []byte(*opts.Replace))
+		v.printer.Printf("@g  - %s\n", "  - %s\n", string(s))
+		v.printer.Printf("@g  + %s\n", "  + %s\n", string(changedTo))
+		return changedTo
 	})
 
 	if changenum > 0 {
-		v.printer.Printf("@!@y - %d change%s made\n", " - %d change%s made\n",
+		v.printer.Printf("@!@y  %d change%s\n", "  %d change%s\n",
 			changenum, getSuffix(changenum))
 	}
 
