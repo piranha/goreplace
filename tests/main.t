@@ -1,8 +1,7 @@
 Go Replace tests:
 
-  $ go build -o gr goreplace 2> /dev/null || go build -o gr github.com/piranha/goreplace
-  $ CURRENT=$(pwd)
-  $ alias gr="$CURRENT/gr -c"
+  $ START_DIR=$PWD && cd $TESTDIR && cd ./.. && go build -o $START_DIR/gr && cd $START_DIR
+  $ alias gr="$START_DIR/gr -c"
 
 Usage:
 
