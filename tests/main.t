@@ -15,6 +15,7 @@ Usage:
   Application Options:
     -r, --replace=RE        replace found substrings with RE
         --force             force replacement in binary files
+        --dry-run           prints replacements without modifying files
     -i, --ignore-case       ignore pattern case
     -s, --singleline        ^/$ will match beginning/end of line
     -p, --plain             treat pattern as plain text
@@ -93,3 +94,49 @@ Check that percents don't do anything bad:
   one
   1:hello %username%
   $ cd ..
+
+Check that a dry run can be executed:
+
+  $ mkdir dry-run && cd dry-run
+  $ echo 'adc' > a.txt
+  $ echo 'def' > b.txt
+  $ gr 'a.c' --replace 'cba' --dry-run
+  Searching for: a.c
+  Replacing with: cba
+  a.txt
+    - adc
+    + cba
+    1 change
+  $ cat a.txt
+  adc
+  $ cat b.txt
+  def
+  $ cd ..
+
+Check that a find/replace executes correctly:
+
+  $ mkdir find-replace && cd find-replace
+  $ echo 'abc\nadc\ndef\nxyz' > abc.txt
+  $ echo 'def\nadc\nxyz' > def.txt
+  $ gr 'a(.)c' --replace 'c${1}a'
+  abc.txt
+    - abc
+    + cba
+    - adc
+    + cda
+    2 changes
+  def.txt
+    - adc
+    + cda
+    1 change
+  $ cat abc.txt
+  cba
+  cda
+  def
+  xyz
+  $ cat def.txt
+  def
+  cda
+  xyz
+  $ cd ..
+
